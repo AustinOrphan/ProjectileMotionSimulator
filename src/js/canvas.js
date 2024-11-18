@@ -20,25 +20,36 @@ export function clearCanvas() {
 
 export function drawAxes(maxHeight = 0, range = 0, scale = 1, offsetX = 0, offsetY = 0) {
     const padding = 40;
+    const aspectRatio = canvas.width / canvas.height;
     clearCanvas();
 
     // Calculate visible range based on scaling
-    const visibleRangeX = range / scale; // Scaled range for x-axis
-    const visibleRangeY = maxHeight / scale; // Scaled range for y-axis
+    let visibleRangeX = range / scale; // Scaled range for x-axis
+    let visibleRangeY = maxHeight / scale; // Scaled range for y-axis
+    if (visibleRangeX === 0) {
+        visibleRangeX = 1; // Prevent division by zero
+    }
+    if (visibleRangeY === 0) {
+        visibleRangeY = 1; // Prevent division by zero
+    }
+    if (visibleRangeX < visibleRangeY) {
+        visibleRangeX = visibleRangeY * aspectRatio;
+    } else {
+        visibleRangeY = visibleRangeX / aspectRatio;
+    }
 
     // Set base tick spacing (adjustable for better visualization)
-    const baseTickSpacingWorldUnits = Math.min(maxHeight, range) / 10; // Tick spacing in world units
-    const xTickSpacing = baseTickSpacingWorldUnits * scale; // Adjust spacing for zoom
-    const yTickSpacing = baseTickSpacingWorldUnits * scale; // Adjust spacing for zoom
+    const baseTickSpacingWorldUnits = Math.min(visibleRangeX, visibleRangeY) / 10; // Tick spacing in world units
+    const tickSpacing = baseTickSpacingWorldUnits * scale; // Adjust spacing for zoom
 
     ctx.strokeStyle = "#e0e0e0"; // Light gray for grid lines
     ctx.lineWidth = 1;
 
     // Draw and label grid lines for x-axis
-    drawGridLines('x', offsetX, xTickSpacing, visibleRangeX, padding, scale);
+    drawGridLines('x', offsetX, tickSpacing, visibleRangeX, padding, scale);
 
     // Draw and label grid lines for y-axis
-    drawGridLines('y', offsetY, yTickSpacing, visibleRangeY, padding, scale);
+    drawGridLines('y', offsetY, tickSpacing, visibleRangeY, padding, scale);
 
     // Draw main axes
     drawMainAxes(padding);

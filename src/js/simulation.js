@@ -17,7 +17,17 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
         // Clear the canvas and redraw the axes
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawAxes(maxHeight, range, scale, offsetX, offsetY);
+        const aspectRatio = canvas.width / canvas.height;
 
+        // Calculate visible range based on scaling
+        let visibleRangeX = range / scale; // Scaled range for x-axis
+        let visibleRangeY = maxHeight / scale; // Scaled range for y-axis
+
+        if (visibleRangeX < visibleRangeY) {
+            visibleRangeX = visibleRangeY * aspectRatio;
+        } else {
+            visibleRangeY = visibleRangeX / aspectRatio;
+        }
         // Draw trajectory up to the current time
         ctx.beginPath();
         ctx.strokeStyle = "blue";
@@ -29,14 +39,10 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
             const y = initialHeight + velocity * Math.sin(angle) * time - 0.5 * gravity * Math.pow(time, 2);
 
             // Apply scale and offsets
-            const canvasX = padding + (x * scale / range) * (canvas.width - 2 * padding) + offsetX;
-            const canvasY = canvas.height - padding - ((y * scale + offsetY) / maxHeight) * (canvas.height - 2 * padding);
+            const canvasX = padding + (x * scale / visibleRangeX) * (canvas.width - 2 * padding) + offsetX;
+            const canvasY = canvas.height - padding - (y * scale / visibleRangeY) * (canvas.height - 2 * padding) - offsetY;
 
-            if (i === 0) {
-                ctx.moveTo(canvasX, canvasY);
-            } else {
-                ctx.lineTo(canvasX, canvasY);
-            }
+            ctx.lineTo(canvasX, canvasY);
         }
 
         ctx.stroke();
@@ -46,8 +52,8 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
         const x = velocity * Math.cos(angle) * time;
         const y = initialHeight + velocity * Math.sin(angle) * time - 0.5 * gravity * Math.pow(time, 2);
 
-        const canvasX = padding + (x * scale / range) * (canvas.width - 2 * padding) + offsetX;
-        const canvasY = canvas.height - padding - ((y * scale + offsetY) / maxHeight) * (canvas.height - 2 * padding);
+        const canvasX = padding + (x * scale / visibleRangeX) * (canvas.width - 2 * padding) + offsetX;
+        const canvasY = canvas.height - padding - (y * scale / visibleRangeY) * (canvas.height - 2 * padding) - offsetY;
 
         ctx.beginPath();
         ctx.arc(canvasX, canvasY, 5, 0, 2 * Math.PI); // Projectile as a small circle

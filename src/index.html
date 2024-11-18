@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projectile Motion Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tooltip {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .tooltip-show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .moon-option {
+            padding-left: 1rem; /* Indent moons under their planet */
+        }
+        canvas {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9; /* Maintain a 16:9 aspect ratio */
+        }
+    </style>
+</head>
+<body class="flex flex-col bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-gray-800 text-white w-screen py-6 shadow-md">
+        <h1 class="text-center text-3xl font-bold sm:text-2xl md:text-4xl">Projectile Motion Simulator</h1>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex flex-col items-center mt-8 w-full px-4 md:px-8">
+        <!-- Controls -->
+        <div class="controls grid w-full max-w-4xl grid-cols-1 gap-6 mb-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <label class="flex flex-col text-gray-700">
+                <span class="mb-2 text-sm font-medium">Initial Velocity (m/s):</span>
+                <input type="number" id="velocity" value="50" step="0.1" class="border rounded p-2 text-gray-900 shadow-sm">
+            </label>
+
+            <label class="flex flex-col text-gray-700">
+                <span class="mb-2 text-sm font-medium">Launch Angle (degrees):</span>
+                <input type="number" id="angle" value="45" step="0.1" class="border rounded p-2 text-gray-900 shadow-sm">
+            </label>
+
+            <label class="flex flex-col text-gray-700 relative">
+                <span class="mb-2 text-sm font-medium">Gravitational Acceleration:</span>
+                <select id="gravitySelect" class="border rounded p-2 text-gray-900 shadow-sm">
+                    <option value="274" data-tooltip="Gravity: 274 m/s²">Sun</option>
+                    
+                    <!-- Mercury -->
+                    <option value="3.7" data-tooltip="Gravity: 3.7 m/s²">Mercury</option>
+
+                    <!-- Venus -->
+                    <option value="8.87" data-tooltip="Gravity: 8.87 m/s²">Venus</option>
+
+                    <!-- Earth -->
+                    <option value="9.8" data-tooltip="Gravity: 9.8 m/s²" selected>Earth</option>
+                    <option value="1.62" data-tooltip="Gravity: 1.62 m/s²"> - Moon</option>
+
+                    <!-- Mars -->
+                    <option value="3.7" data-tooltip="Gravity: 3.7 m/s²">Mars</option>
+                    <option value="0.0057" data-tooltip="Gravity: 0.0057 m/s²"> - Phobos</option>
+                    <option value="0.003" data-tooltip="Gravity: 0.003 m/s²"> - Deimos</option>
+
+                    <!-- Jupiter -->
+                    <option value="24.79" data-tooltip="Gravity: 24.79 m/s²">Jupiter</option>
+                    <option value="1.352" data-tooltip="Gravity: 1.352 m/s²"> - Io</option>
+                    <option value="1.796" data-tooltip="Gravity: 1.796 m/s²"> - Europa</option>
+                    <option value="1.428" data-tooltip="Gravity: 1.428 m/s²"> - Ganymede</option>
+                    <option value="1.235" data-tooltip="Gravity: 1.235 m/s²"> - Callisto</option>
+
+                    <!-- Saturn -->
+                    <option value="10.44" data-tooltip="Gravity: 10.44 m/s²">Saturn</option>
+                    <option value="0.113" data-tooltip="Gravity: 0.113 m/s²"> - Mimas</option>
+                    <option value="0.145" data-tooltip="Gravity: 0.145 m/s²"> - Enceladus</option>
+                    <option value="0.222" data-tooltip="Gravity: 0.222 m/s²"> - Tethys</option>
+                    <option value="0.235" data-tooltip="Gravity: 0.235 m/s²"> - Dione</option>
+                    <option value="0.379" data-tooltip="Gravity: 0.379 m/s²"> - Rhea</option>
+                    <option value="1.352" data-tooltip="Gravity: 1.352 m/s²"> - Titan</option>
+                    <option value="0.113" data-tooltip="Gravity: 0.113 m/s²"> - Hyperion</option>
+                    <option value="0.079" data-tooltip="Gravity: 0.079 m/s²"> - Iapetus</option>
+
+                    <!-- Uranus -->
+                    <option value="8.69" data-tooltip="Gravity: 8.69 m/s²">Uranus</option>
+                    <option value="0.072" data-tooltip="Gravity: 0.072 m/s²"> - Miranda</option>
+                    <option value="0.079" data-tooltip="Gravity: 0.079 m/s²"> - Ariel</option>
+                    <option value="0.113" data-tooltip="Gravity: 0.113 m/s²"> - Umbriel</option>
+                    <option value="0.072" data-tooltip="Gravity: 0.072 m/s²"> - Titania</option>
+                    <option value="0.079" data-tooltip="Gravity: 0.079 m/s²"> - Oberon</option>
+
+                    <!-- Neptune -->
+                    <option value="11.15" data-tooltip="Gravity: 11.15 m/s²">Neptune</option>
+                    <option value="0.074" data-tooltip="Gravity: 0.074 m/s²"> - Triton</option>
+
+                    <!-- Pluto -->
+                    <option value="0.62" data-tooltip="Gravity: 0.62 m/s²">Pluto</option>
+                    <option value="0.063" data-tooltip="Gravity: 0.063 m/s²"> - Charon</option>
+
+                    <!-- Custom Gravity -->
+                    <option value="0" data-tooltip="Enter Custom Gravity">Custom</option>
+                </select>
+                <input type="number" id="customGravity" value="9.8" step="0.1" class="border rounded p-2 mt-2 hidden">
+                <div id="tooltip" class="absolute bg-gray-800 text-white text-xs p-2 rounded shadow-lg z-10 mt-1 tooltip"></div>
+            </label>
+
+            <label class="flex flex-col text-gray-700">
+                <span class="mb-2 text-sm font-medium">Initial Height (m):</span>
+                <input type="number" id="height" value="0" step="0.1" class="border rounded p-2 text-gray-900 shadow-sm">
+            </label>
+
+            <label class="flex flex-col text-gray-700">
+                <span class="mb-2 text-sm font-medium">Drag Coefficient (C<sub>d</sub>):</span>
+                <input type="number" id="dragCoefficient" value="0.47" step="0.01" class="border rounded p-2 text-gray-900 shadow-sm">
+            </label>
+
+            <label class="flex flex-col text-gray-700">
+                <span class="mb-2 text-sm font-medium">Cross-Sectional Area (m²):</span>
+                <input type="number" id="crossSection" value="0.01" step="0.001" class="border rounded p-2 text-gray-900 shadow-sm">
+            </label>
+
+            <label class="flex flex-col text-gray-700">
+                <span class="mb-2 text-sm font-medium">Mass (kg):</span>
+                <input type="number" id="mass" value="1" step="0.1" class="border rounded p-2 text-gray-900 shadow-sm">
+            </label>
+        </div>
+
+        <!-- Simulate Button -->
+        <div class="flex justify-center w-full">
+            <button id="simulate" class="bg-blue-600 text-white px-6 py-3 rounded shadow-md hover:bg-blue-500 transition">
+                Simulate
+            </button>
+        </div>
+
+        <!-- Canvas -->
+        <div class="mt-8 w-full max-w-4xl">
+            <canvas id="trajectoryCanvas"class="border shadow-md"></canvas>
+        </div>
+    </main>
+    <!-- JavaScript -->
+    <script type= "module" src="js/main.js"></script>
+</body>
+</html>

@@ -4,6 +4,7 @@ import { animateProjectile, calculateTrajectory } from './simulation.js';
 let scale = 1; // Initial zoom level
 let offsetX = 0; // Horizontal pan offset
 let offsetY = 0; // Vertical pan offset
+let speedFactor = 1; // Default speed factor
 
 export function setupControls() {
     const gravitySelect = document.getElementById("gravitySelect");
@@ -59,6 +60,13 @@ export function setupControls() {
     canvas.addEventListener("mouseleave", () => {
         isPanning = false;
     });
+
+    // Add event listener for speed control
+    document.getElementById('speedControl').addEventListener('input', function(event) {
+        speedFactor = parseFloat(event.target.value);
+        document.getElementById('speedValue').textContent = `${speedFactor}x`;
+        updateSimulation(); // Update the simulation with the new speed factor
+    });
 }
 
 export function updateSimulation() {
@@ -92,6 +100,6 @@ export function updateSimulation() {
 
     const trajectoryPoints = calculateTrajectory(velocity, angleRadians, gravity, initialHeight);
     drawAxes(maxHeight, range, scale, offsetX, offsetY);
-    animateProjectile(velocity, angleRadians, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY);
+    animateProjectile(velocity, angleRadians, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor);
     drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight, scale, offsetX, offsetY);
 }

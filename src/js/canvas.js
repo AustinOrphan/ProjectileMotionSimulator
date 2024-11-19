@@ -125,12 +125,27 @@ export function drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight, scale, 
 
     const padding = 40;
 
+    // Calculate visible range based on scaling
+    let visibleRangeX = range / scale; // Scaled range for x-axis
+    let visibleRangeY = maxHeight / scale; // Scaled range for y-axis
+    if (visibleRangeX === 0) {
+        visibleRangeX = 1; // Prevent division by zero
+    }
+    if (visibleRangeY === 0) {
+        visibleRangeY = 1; // Prevent division by zero
+    }
+    if (visibleRangeX < visibleRangeY) {
+        visibleRangeX = visibleRangeY * aspectRatio;
+    } else {
+        visibleRangeY = visibleRangeX / aspectRatio;
+    }
+
     // Max height dashed line and label
     const maxHeightY = canvas.height - padding - (maxHeight * scale / maxHeight) * (canvas.height - 2 * padding) - offsetY;
     console.log(`Max Height Y: ${maxHeightY}`);
     ctx.beginPath();
-    ctx.moveTo(padding, maxHeightY);
-    ctx.lineTo(canvas.width - padding, maxHeightY);
+    ctx.moveTo(padding, visibleRangeY);
+    ctx.lineTo(canvas.width - padding, visibleRangeY);
     ctx.stroke();
     ctx.fillText(`Max Height: ${maxHeight.toFixed(2)}m`, padding + 10, maxHeightY - 5);
 

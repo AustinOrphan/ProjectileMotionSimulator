@@ -3,7 +3,7 @@ import { initializeCanvas, canvas, ctx, drawAxes, drawDashedLinesAndLabels } fro
 let animationFrameId;
 let trajectoryData = []; // Stores trajectory points for redrawing
 
-export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY) {
+export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor) {
     const padding = 40;
     const steps = 500;
     let t = 0; // Start time
@@ -16,6 +16,8 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
     function drawFrame() {
         // Clear the canvas and redraw the axes
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.setLineDash([]); // Reset dashed lines
+
         drawAxes(maxHeight, range, scale, offsetX, offsetY);
         const aspectRatio = canvas.width / canvas.height;
 
@@ -62,7 +64,7 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
 
         // Update time for the next frame
         if (t < steps) {
-            t++;
+            t += speedFactor;
             animationFrameId = requestAnimationFrame(drawFrame);
         }
     }
@@ -77,9 +79,7 @@ export function calculateTrajectory(initialVelocity, angle, gravity, initialHeig
     const vy = initialVelocity * Math.sin(radianAngle); // Velocity in y direction
     const timeOfFlight = (vy + Math.sqrt(vy ** 2 + 2 * gravity * initialHeight)) / gravity;
 
-    const step = timeOfFlight / 100; // Divide time into 100 intervals
-
-    for (let t = 0; t <= timeOfFlight; t += step) {
+    for (let t = 0; t <= timeOfFlight; t ++) {
         const x = vx * t;
         const y = initialHeight + vy * t - 0.5 * gravity * t ** 2;
         points.push({ x, y });
@@ -104,15 +104,11 @@ function drawTrajectory() {
 
     ctx.beginPath();
     ctx.strokeStyle = "blue";
-    trajectoryData.forEach((point, index) => {
+    trajectoryData.forEach((point) => {
         const x = point.x * scaleX;
         const y = canvas.height - point.y * scaleY; // Flip y-axis for canvas
 
-        if (index === 0) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
+        ctx.moveTo(x, y);
     });
     ctx.stroke();
 }

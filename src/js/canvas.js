@@ -1,5 +1,7 @@
 let canvas;
 let ctx;
+export let aspectRatio;
+const padding = 40;
 
 export function initializeCanvas() {
     canvas = document.getElementById("trajectoryCanvas");
@@ -19,8 +21,7 @@ export function clearCanvas() {
 }
 
 export function drawAxes(maxHeight = 0, range = 0, scale = 1, offsetX = 0, offsetY = 0) {
-    const padding = 40;
-    const aspectRatio = canvas.width / canvas.height;
+    aspectRatio = canvas.width / canvas.height;
     clearCanvas();
 
     // Calculate visible range based on scaling
@@ -59,19 +60,34 @@ export function drawAxes(maxHeight = 0, range = 0, scale = 1, offsetX = 0, offse
 }
 
 function drawGridLines(axis, offset, tickSpacing, visibleRange, padding, scale) {
-    const startCoord = (offset / scale) - ((offset / scale) % tickSpacing);
-    const endCoord = offset + visibleRange;
+    let endCoord, startCoord;
+    if (axis === 'x') {
+        startCoord = offset - (offset % tickSpacing);
+        endCoord = offset + visibleRange;
+    } else {
+        startCoord = (offset % tickSpacing) - offset;
+        endCoord = visibleRange - offset;
+    }
+    console.log(`Drawing ${axis}-axis grid lines with start: ${startCoord}, end: ${endCoord}, tick spacing: ${tickSpacing}, visible range: ${visibleRange}, padding: ${padding}, scale: ${scale}`);
 
     for (let coord = startCoord; coord <= endCoord; coord += tickSpacing) {
         let canvasCoord;
         if (axis === 'x') {
             canvasCoord = padding + ((coord - offset) / visibleRange) * (canvas.width - 2 * padding);
         } else {
-            canvasCoord = canvas.height - padding - ((coord - offset) / visibleRange) * (canvas.height - 2 * padding);
+            canvasCoord = canvas.height - padding - ((coord + offset) / visibleRange) * (canvas.height - 2 * padding);
         }
-
-        if (canvasCoord >= padding && canvasCoord <= canvas.width - padding) {
+        
+        // Draw grid line if within canvas bounds
+        if (canvasCoord > padding && canvasCoord < (axis === 'x' ? canvas.width - padding : canvas.height - padding)) {
             ctx.beginPath();
+            if  (Math.round(coord) === 0) {
+                ctx.strokeStyle = "black";
+                ctx.lineWidth = 2;
+            } else {
+                ctx.strokeStyle = "#e0e0e0";
+                ctx.lineWidth = 1;
+            }
             if (axis === 'x') {
                 ctx.moveTo(canvasCoord, canvas.height - padding);
                 ctx.lineTo(canvasCoord, padding);
@@ -89,7 +105,7 @@ function drawGridLines(axis, offset, tickSpacing, visibleRange, padding, scale) 
                 ctx.fillText(label, padding - 30, canvasCoord + 5);
             }
 
-            console.log(`${axis.toUpperCase()}-axis gridline at canvas${axis.toUpperCase()}: ${canvasCoord}, label: ${label}`);
+            // console.log(`${axis.toUpperCase()}-axis gridline at canvas${axis.toUpperCase()}: ${canvasCoord}, label: ${label}`);
         }
     }
 }

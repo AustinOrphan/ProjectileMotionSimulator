@@ -1,0 +1,14 @@
+.tooltip {
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.tooltip-show {
+    opacity: 1;
+    transform: scale(1);
+}
+canvas {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9; /* Maintain a 16:9 aspect ratio */
+}

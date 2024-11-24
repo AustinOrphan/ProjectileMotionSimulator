@@ -1,16 +1,20 @@
 import { initializeCanvas, canvas, ctx, drawAxes, drawDashedLinesAndLabels, aspectRatio } from './canvas.js';
+import { calculateVisibleRange, calculateCanvasCoordinates } from './scaling.js';
 
 let animationFrameId;
 let trajectoryData = []; // Stores trajectory points for redrawing
-const padding = 40;
-const steps = 300;
+const padding = 50;
+const steps = 10000; // Number of steps for animation
 
 export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor) {
     let t = 0; // Start time
+    const frameDuration = 1000 / 60; // 60 FPS
+    const stepDuration = frameDuration / speedFactor;
 
     // Cancel any existing animation
     if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+        window.cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
     }
 
     function drawFrame() {
@@ -19,23 +23,20 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
         ctx.setLineDash([]); // Reset dashed lines
 
         drawAxes(maxHeight, range, scale, offsetX, offsetY);
-
-        // Calculate visible range based on scaling
-        let { visibleRangeX, visibleRangeY } = getScaledVisibleRanges(range, scale, maxHeight);
+        drawDashedLinesAndLabels(maxHeight, range, velocity * Math.cos(angle) * (velocity * Math.sin(angle) / gravity));
 
         // Draw trajectory up to the current time
         ctx.beginPath();
         ctx.strokeStyle = "blue";
         ctx.lineWidth = 2;
 
-        const stepSize = 1;//Math.max(1, Math.floor(t / 100)); // Adjust step size for optimization
+        const stepSize = 1; // Adjust step size for optimization
         for (let i = 0; i <= t; i += stepSize) {
-            
             const time = (timeOfFlight / steps) * i;
             const { x, y } = getProjectileCoordinates(time, velocity, angle, initialHeight, gravity);
 
             // Convert x and y to canvas coordinates
-            const { canvasX, canvasY } = calculateCanvasCoordinates(x, offsetX, visibleRangeX, y, offsetY, visibleRangeY);
+            const { canvasX, canvasY } = calculateCanvasCoordinates(x, y);
 
             if (isPointWithinCanvas(canvasX, canvasY)) {
                 // Draw line to the next point unless it's the last point (avoids a weird blue circle around the red projectile)
@@ -43,26 +44,29 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
                     ctx.lineTo(canvasX, canvasY);
                 }
                 // Draw projectile at the current position unless it's the last frame
-                else if (t !== steps){
+                else if (t !== steps) {
                     ctx.beginPath();
                     ctx.arc(canvasX, canvasY, 5, 0, 2 * Math.PI); // Projectile as a small circle
                     ctx.fillStyle = "red";
                     ctx.fill();
+                } else {
+                    drawDashedLinesAndLabels(maxHeight, range, velocity * Math.cos(angle) * (velocity * Math.sin(angle) / gravity));
                 }
-            // Move to the next point if it's outside the canvas
             } else {
+                // Move to the next point if it's outside the canvas
                 ctx.moveTo(canvasX, canvasY);
             }
+
             // Draw blue line at second to last frame to avoid a weird blue circle around the red projectile and aliasing
-            if (i === t - 1){
+            if (i === t - 1) {
                 ctx.stroke();
             }
         }
-        
+
         // Update time for the next frame
         if (t < steps) {
-            t += speedFactor;
-            animationFrameId = requestAnimationFrame(drawFrame);
+            t += 10 * speedFactor;
+            animationFrameId = window.requestAnimationFrame(drawFrame);
         }
     }
 
@@ -73,24 +77,6 @@ function getProjectileCoordinates(time, velocity, angle, initialHeight, gravity)
     const x = velocity * Math.cos(angle) * time;
     const y = initialHeight + velocity * Math.sin(angle) * time - 0.5 * gravity * Math.pow(time, 2);
     return { x, y };
-}
-
-function getScaledVisibleRanges(range, scale, maxHeight) {
-    let visibleRangeX = range / scale; // Scaled range for x-axis
-    let visibleRangeY = maxHeight / scale; // Scaled range for y-axis
-
-    if (visibleRangeX < visibleRangeY) {
-        visibleRangeX = visibleRangeY * aspectRatio;
-    } else {
-        visibleRangeY = visibleRangeX / aspectRatio;
-    }
-    return { visibleRangeX, visibleRangeY };
-}
-
-function calculateCanvasCoordinates(x, offsetX, visibleRangeX, y, offsetY, visibleRangeY) {
-    const canvasX = padding + ((x - offsetX) / visibleRangeX) * (canvas.width - 2 * padding);
-    const canvasY = canvas.height - padding - ((y + offsetY) / visibleRangeY) * (canvas.height - 2 * padding);
-    return { canvasX, canvasY };
 }
 
 function isPointWithinCanvas(xCoord, yCoord) {

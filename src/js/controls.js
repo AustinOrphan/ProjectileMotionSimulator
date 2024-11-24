@@ -1,10 +1,12 @@
 import { resizeCanvas, drawAxes, drawDashedLinesAndLabels, canvas, ctx } from './canvas.js';
 import { animateProjectile, calculateTrajectory } from './simulation.js';
+import { calculateCanvasCoordinates } from './scaling.js';
 
-let scale = 1; // Initial zoom level
-let offsetX = 0; // Horizontal pan offset
-let offsetY = 0; // Vertical pan offset
+export let scale = 1; // Default scale
+export let offsetX = 0; // Default offset
+export let offsetY = 0; // Default offset
 let speedFactor = 1; // Default speed factor
+let animationFrameId; // Store the animation frame ID
 
 export function setupControls() {
     const gravitySelect = document.getElementById("gravitySelect");
@@ -40,16 +42,19 @@ export function setupControls() {
 
     canvas.addEventListener("mousemove", (event) => {
         if (isPanning) {
-            const dx = (event.offsetX - startX) / scale; // Adjust by zoom level
-            const dy = (event.offsetY - startY) / scale;
+            const { canvasX: startCanvasX, canvasY: startCanvasY } = calculateCanvasCoordinates(startX, startY);
+            const { canvasX: currentCanvasX, canvasY: currentCanvasY } = calculateCanvasCoordinates(event.offsetX, event.offsetY);
+
+            const dx = (currentCanvasX - startCanvasX) / scale; // Adjust by zoom level
+            const dy = (currentCanvasY - startCanvasY) / scale;
 
             offsetX -= dx; // Subtract to move in opposite direction
-            offsetY -= dy;
+            offsetY += dy; // Add to move in correct direction
 
             startX = event.offsetX;
             startY = event.offsetY;
 
-            updateSimulation(); // Update the canvas with new offsets
+            updateSimulation(); // Redraw the canvas with updated offsets
         }
     });
 
@@ -84,6 +89,12 @@ export function updateSimulation() {
         return;
     }
 
+    // Cancel any existing animation
+    if (animationFrameId) {
+        window.cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+    }
+
     const angleRadians = (angle * Math.PI) / 180;
     const timeOfFlight =
         (velocity * Math.sin(angleRadians) +
@@ -100,6 +111,6 @@ export function updateSimulation() {
 
     const trajectoryPoints = calculateTrajectory(velocity, angleRadians, gravity, initialHeight);
     drawAxes(maxHeight, range, scale, offsetX, offsetY);
-    animateProjectile(velocity, angleRadians, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor);
-    drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight, scale, offsetX, offsetY);
+    animationFrameId = animateProjectile(velocity, angleRadians, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor);
+    drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight);
 }

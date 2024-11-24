@@ -1,27 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projectile Motion Simulator</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .tooltip {
-            opacity: 0;
-            transform: scale(0.9);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        .tooltip-show {
-            opacity: 1;
-            transform: scale(1);
-        }
-        canvas {
-            width: 100%;
-            height: auto;
-            aspect-ratio: 16 / 9; /* Maintain a 16:9 aspect ratio */
-        }
-    </style>
 </head>
+
 <body class="flex flex-col bg-gray-100 min-h-screen">
     <!-- Header -->
     <header class="bg-gray-800 text-white w-screen py-6 shadow-md">
@@ -34,19 +21,22 @@
         <div class="controls grid w-full max-w-4xl grid-cols-1 gap-6 mb-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             <label class="flex flex-col text-gray-700">
                 <span class="mb-2 text-sm font-medium">Initial Velocity (m/s):</span>
-                <input type="number" id="velocity" value="50" step="0.1" class="border rounded p-2 text-gray-900 shadow-sm">
+                <input type="number" id="velocity" value="50" step="0.1"
+                    class="border rounded p-2 text-gray-900 shadow-sm">
             </label>
 
             <label class="flex flex-col text-gray-700">
                 <span class="mb-2 text-sm font-medium">Launch Angle (degrees):</span>
-                <input type="number" id="angle" value="45" step="0.1" class="border rounded p-2 text-gray-900 shadow-sm">
+                <input type="number" id="angle" value="45" step="0.1"
+                    class="border rounded p-2 text-gray-900 shadow-sm">
             </label>
 
             <label class="flex flex-col text-gray-700 relative">
                 <span class="mb-2 text-sm font-medium">Gravitational Acceleration:</span>
                 <select id="gravitySelect" class="border rounded p-2 text-gray-900 shadow-sm">
+                    <!-- Moons are prefaced with " - " -->
                     <option value="274" data-tooltip="Gravity: 274 m/s²">Sun</option>
-                    
+
                     <!-- Mercury -->
                     <option value="3.7" data-tooltip="Gravity: 3.7 m/s²">Mercury</option>
 
@@ -100,47 +90,26 @@
                     <option value="0" data-tooltip="Enter Custom Gravity">Custom</option>
                 </select>
                 <input type="number" id="customGravity" value="9.8" step="0.1" class="border rounded p-2 mt-2 hidden">
-                <div id="tooltip" class="absolute bg-gray-800 text-white text-xs p-2 rounded shadow-lg z-10 mt-1 tooltip"></div>
             </label>
 
             <label class="flex flex-col text-gray-700">
                 <span class="mb-2 text-sm font-medium">Initial Height (m):</span>
-                <input type="number" id="height" value="0" step="0.1" class="border rounded p-2 text-gray-900 shadow-sm">
+                <input type="number" id="height" value="0" step="0.1"
+                    class="border rounded p-2 text-gray-900 shadow-sm">
             </label>
-
-            <!-- <label class="flex flex-col text-gray-700">
-                <span class="mb-2 text-sm font-medium">Drag Coefficient (C<sub>d</sub>):</span>
-                <input type="number" id="dragCoefficient" value="0.47" step="0.01" class="border rounded p-2 text-gray-900 shadow-sm">
-            </label>
-
-            <label class="flex flex-col text-gray-700">
-                <span class="mb-2 text-sm font-medium">Cross-Sectional Area (m²):</span>
-                <input type="number" id="crossSection" value="0.01" step="0.001" class="border rounded p-2 text-gray-900 shadow-sm">
-            </label>
-
-            <label class="flex flex-col text-gray-700">
-                <span class="mb-2 text-sm font-medium">Mass (kg):</span>
-                <input type="number" id="mass" value="1" step="0.1" class="border rounded p-2 text-gray-900 shadow-sm">
-            </label> -->
         </div>
 
         <label for="speedControl">Simulation Speed:</label>
-        <input type="range" id="speedControl" min="0.1" max="3" step="0.1" value="1">
+        <input type="range" id="speedControl" min="0.1" max="10" step="0.1" value="1">
         <span id="speedValue">1x</span>
-
-        <!-- Simulate Button -->
-        <!-- <div class="flex justify-center w-full">
-            <button id="simulate" class="bg-blue-600 text-white px-6 py-3 rounded shadow-md hover:bg-blue-500 transition">
-                Simulate
-            </button>
-        </div> -->
 
         <!-- Canvas -->
         <div class="mt-8 w-full max-w-4xl">
-            <canvas id="trajectoryCanvas"class="border shadow-md"></canvas>
+            <canvas id="trajectoryCanvas" class="border shadow-md"></canvas>
         </div>
     </main>
     <!-- JavaScript -->
-    <script type= "module" src="js/main.js"></script>
+    <script type="module" src="js/main.js" defer></script>
 </body>
+
 </html>

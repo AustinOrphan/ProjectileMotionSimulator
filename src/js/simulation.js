@@ -1,15 +1,13 @@
-import { initializeCanvas, canvas, ctx, drawAxes, drawDashedLinesAndLabels, aspectRatio } from './canvas.js';
+import { initializeCanvas, canvas, ctx, drawAxes, drawDashedLinesAndLabels } from './canvas.js';
 import { calculateVisibleRange, calculateCanvasCoordinates } from './scaling.js';
+import { PADDING, STEPS, FRAME_DURATION } from './constants.js';
 
 let animationFrameId;
 let trajectoryData = []; // Stores trajectory points for redrawing
-const padding = 50;
-const steps = 10000; // Number of steps for animation
 
 export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor) {
     let t = 0; // Start time
-    const frameDuration = 1000 / 60; // 60 FPS
-    const stepDuration = frameDuration / speedFactor;
+    const stepDuration = FRAME_DURATION / speedFactor;
 
     // Cancel any existing animation
     if (animationFrameId) {
@@ -32,7 +30,7 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
 
         const stepSize = 1; // Adjust step size for optimization
         for (let i = 0; i <= t; i += stepSize) {
-            const time = (timeOfFlight / steps) * i;
+            const time = (timeOfFlight / STEPS) * i;
             const { x, y } = getProjectileCoordinates(time, velocity, angle, initialHeight, gravity);
 
             // Convert x and y to canvas coordinates
@@ -44,7 +42,7 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
                     ctx.lineTo(canvasX, canvasY);
                 }
                 // Draw projectile at the current position unless it's the last frame
-                else if (t !== steps) {
+                else if (t !== STEPS) {
                     ctx.beginPath();
                     ctx.arc(canvasX, canvasY, 5, 0, 2 * Math.PI); // Projectile as a small circle
                     ctx.fillStyle = "red";
@@ -64,7 +62,7 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
         }
 
         // Update time for the next frame
-        if (t < steps) {
+        if (t < STEPS) {
             t += 10 * speedFactor;
             animationFrameId = window.requestAnimationFrame(drawFrame);
         }
@@ -80,8 +78,8 @@ function getProjectileCoordinates(time, velocity, angle, initialHeight, gravity)
 }
 
 function isPointWithinCanvas(xCoord, yCoord) {
-    const isWithinCanvasX = xCoord > padding && xCoord < canvas.width - padding;
-    const isWithinCanvasY = yCoord > padding && yCoord < canvas.height - padding;
+    const isWithinCanvasX = xCoord > PADDING && xCoord < canvas.width - PADDING;
+    const isWithinCanvasY = yCoord > PADDING && yCoord < canvas.height - PADDING;
     return isWithinCanvasX && isWithinCanvasY;
 }
 
@@ -92,7 +90,7 @@ export function calculateTrajectory(initialVelocity, angle, gravity, initialHeig
     const vy = initialVelocity * Math.sin(radianAngle); // Velocity in y direction
     const timeOfFlight = (vy + Math.sqrt(vy ** 2 + 2 * gravity * initialHeight)) / gravity;
 
-    for (let t = 0; t <= timeOfFlight; t ++) {
+    for (let t = 0; t <= timeOfFlight; t++) {
         const x = vx * t;
         const y = initialHeight + vy * t - 0.5 * gravity * t ** 2;
         points.push({ x, y });

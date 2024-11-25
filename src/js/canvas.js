@@ -1,5 +1,5 @@
 import { calculateVisibleRange, calculateCanvasCoordinates } from './scaling.js';
-import { PADDING, ASPECT_RATIO } from './constants.js';
+import { CANVAS_PADDING, CANVAS_ASPECT_RATIO } from './constants.js';
 
 let canvas;
 let ctx;
@@ -20,7 +20,7 @@ export { canvas, ctx };
 export function resizeCanvas() {
     const parentWidth = canvas.parentElement.clientWidth;
     canvas.width = parentWidth;
-    canvas.height = parentWidth * ASPECT_RATIO; // Maintain aspect ratio
+    canvas.height = parentWidth * CANVAS_ASPECT_RATIO; // Maintain aspect ratio
 }
 
 export function clearCanvas() {
@@ -41,16 +41,16 @@ export function drawAxes(maxHeight = 0, range = 0, scale = 1, offsetX = 0, offse
     ctx.lineWidth = 1;
 
     // Draw and label grid lines for x-axis
-    drawGridLines('x', offsetX, tickSpacing, visibleRangeX, PADDING, scale);
+    drawGridLines('x', offsetX, tickSpacing, visibleRangeX, CANVAS_PADDING, scale);
 
     // Draw and label grid lines for y-axis
-    drawGridLines('y', offsetY, tickSpacing, visibleRangeY, PADDING, scale);
+    drawGridLines('y', offsetY, tickSpacing, visibleRangeY, CANVAS_PADDING, scale);
 
     // Draw main axes
-    drawMainAxes(PADDING);
+    drawMainAxes(CANVAS_PADDING);
 
     // Add axis titles
-    addAxisTitles(PADDING);
+    addAxisTitles(CANVAS_PADDING);
 }
 
 function drawGridLines(axis, offset, tickSpacing, visibleRange, padding, scale) {
@@ -75,7 +75,7 @@ function drawGridLines(axis, offset, tickSpacing, visibleRange, padding, scale) 
         }
 
         // Draw grid line if within canvas bounds
-        if (canvasCoord > PADDING && canvasCoord < (axis === 'x' ? canvas.width - PADDING : canvas.height - PADDING)) {
+        if (canvasCoord > CANVAS_PADDING && canvasCoord < (axis === 'x' ? canvas.width - CANVAS_PADDING : canvas.height - CANVAS_PADDING)) {
             ctx.beginPath();
             if (coord === 0) {
                 ctx.strokeStyle = "black";
@@ -85,11 +85,11 @@ function drawGridLines(axis, offset, tickSpacing, visibleRange, padding, scale) 
                 ctx.lineWidth = 1;
             }
             if (axis === 'x') {
-                ctx.moveTo(canvasCoord, canvas.height - PADDING);
-                ctx.lineTo(canvasCoord, PADDING);
+                ctx.moveTo(canvasCoord, canvas.height - CANVAS_PADDING);
+                ctx.lineTo(canvasCoord, CANVAS_PADDING);
             } else {
-                ctx.moveTo(PADDING, canvasCoord);
-                ctx.lineTo(canvas.width - PADDING, canvasCoord);
+                ctx.moveTo(CANVAS_PADDING, canvasCoord);
+                ctx.lineTo(canvas.width - CANVAS_PADDING, canvasCoord);
             }
             ctx.stroke();
 
@@ -97,10 +97,10 @@ function drawGridLines(axis, offset, tickSpacing, visibleRange, padding, scale) 
             ctx.fillStyle = "black";
             if (axis === 'x') {
                 ctx.textAlign = "left";
-                ctx.fillText(coord === 0 ? "0" : label, canvasCoord - 10, canvas.height - PADDING + 20);
+                ctx.fillText(coord === 0 ? "0" : label, canvasCoord - 10, canvas.height - CANVAS_PADDING + 20);
             } else {
                 ctx.textAlign = "right";
-                ctx.fillText(coord === 0 ? "0" : label, PADDING - 5, canvasCoord + 5);
+                ctx.fillText(coord === 0 ? "0" : label, CANVAS_PADDING - 5, canvasCoord + 5);
             }
         }
     }
@@ -110,10 +110,10 @@ function drawMainAxes(padding) {
     ctx.strokeStyle = "black";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(PADDING, canvas.height - PADDING); // x-axis
-    ctx.lineTo(canvas.width - PADDING, canvas.height - PADDING);
-    ctx.moveTo(PADDING, canvas.height - PADDING); // y-axis
-    ctx.lineTo(PADDING, PADDING);
+    ctx.moveTo(CANVAS_PADDING, canvas.height - CANVAS_PADDING); // x-axis
+    ctx.lineTo(canvas.width - CANVAS_PADDING, canvas.height - CANVAS_PADDING);
+    ctx.moveTo(CANVAS_PADDING, canvas.height - CANVAS_PADDING); // y-axis
+    ctx.lineTo(CANVAS_PADDING, CANVAS_PADDING);
     ctx.stroke();
 }
 
@@ -122,8 +122,8 @@ function addAxisTitles(padding) {
     ctx.fillStyle = "black";
     ctx.textAlign = "left";
     // ctx.fillText("0", PADDING - 10, canvas.height - PADDING + 15);
-    ctx.fillText("Range (m)", canvas.width - PADDING - 50, canvas.height - PADDING + 35);
-    ctx.fillText("Height (m)", PADDING - 30, PADDING - 10);
+    ctx.fillText("Range (m)", canvas.width - CANVAS_PADDING - 50, canvas.height - CANVAS_PADDING + 35);
+    ctx.fillText("Height (m)", CANVAS_PADDING - 30, CANVAS_PADDING - 10);
 }
 
 function drawSpecificDashedLine(type, measurementValue, padding ) {
@@ -133,33 +133,33 @@ function drawSpecificDashedLine(type, measurementValue, padding ) {
             const { canvasY: canvasYMaxHeight } = calculateCanvasCoordinates(0, measurementValue);
             canvasCoord = canvasYMaxHeight;
             label = `Max Height: ${measurementValue.toFixed(2)}m`;
-            ctx.moveTo(PADDING, canvasCoord);
-            ctx.lineTo(canvas.width - PADDING, canvasCoord);
+            ctx.moveTo(CANVAS_PADDING, canvasCoord);
+            ctx.lineTo(canvas.width - CANVAS_PADDING, canvasCoord);
             break;
         case 'range':
             const { canvasX: canvasXRange } = calculateCanvasCoordinates(measurementValue, 0);
             canvasCoord = canvasXRange;
             label = `Range: ${measurementValue.toFixed(2)}m`;
-            ctx.moveTo(canvasCoord, PADDING);
-            ctx.lineTo(canvasCoord, canvas.height - PADDING);
+            ctx.moveTo(canvasCoord, CANVAS_PADDING);
+            ctx.lineTo(canvasCoord, canvas.height - CANVAS_PADDING);
             break;
         case 'xAtMaxHeight':
             const { canvasX: canvasXXAtMaxHeight } = calculateCanvasCoordinates(measurementValue, 0);
             canvasCoord = canvasXXAtMaxHeight;
             label = `X@MaxHeight: ${measurementValue.toFixed(2)}m`;
-            ctx.moveTo(canvasCoord, PADDING);
-            ctx.lineTo(canvasCoord, canvas.height - PADDING);
+            ctx.moveTo(canvasCoord, CANVAS_PADDING);
+            ctx.lineTo(canvasCoord, canvas.height - CANVAS_PADDING);
             break;
     }
 
     ctx.stroke();
     let textX, textY;
     if (type === 'maxHeight') {
-        textX = PADDING + 10;
+        textX = CANVAS_PADDING + 10;
         textY = canvasCoord - 5;
     } else {
         textX = canvasCoord + 5;
-        textY = canvas.height - PADDING - 10;
+        textY = canvas.height - CANVAS_PADDING - 10;
     }
     ctx.fillText(label, textX, textY);
 }
@@ -169,9 +169,9 @@ export function drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight) {
     ctx.strokeStyle = "gray";
     ctx.lineWidth = 1;
 
-    drawSpecificDashedLine('maxHeight', maxHeight, PADDING);
-    drawSpecificDashedLine('range', range, PADDING);
-    drawSpecificDashedLine('xAtMaxHeight', xAtMaxHeight, PADDING);
+    drawSpecificDashedLine('maxHeight', maxHeight, CANVAS_PADDING);
+    drawSpecificDashedLine('range', range, CANVAS_PADDING);
+    drawSpecificDashedLine('xAtMaxHeight', xAtMaxHeight, CANVAS_PADDING);
     
     ctx.setLineDash([]); // Reset dashed lines
 }

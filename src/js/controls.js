@@ -1,4 +1,4 @@
-import { canvas, ctx, drawAxes, drawDashedLinesAndLabels, resizeCanvas } from './canvas.js';
+import { canvas, clearCanvas, drawAxes, resizeCanvas } from './canvas.js';
 import { calculateCanvasCoordinates } from './scaling.js';
 import { animateProjectile, calculateTrajectory } from './simulation.js';
 import { DEG_TO_RAD } from './constants.js';
@@ -128,6 +128,10 @@ export function setupControls() {
             offsetX -= dx; // Subtract to move in opposite direction
             offsetY += dy; // Add to move in correct direction
 
+            // Ensure new offsets do not go below 0
+            if (offsetX < 0) offsetX = 0;
+            if (offsetY > 0) offsetY = 0;
+
             startX = event.offsetX;
             startY = event.offsetY;
 
@@ -157,9 +161,8 @@ export function updateSimulation() {
     const { angleRadians, timeOfFlight, maxHeight, range, xAtMaxHeight } = calculateSimulationValues(velocity, angle, gravity, initialHeight);
 
     const trajectoryPoints = calculateTrajectory(velocity, angleRadians, gravity, initialHeight);
-    drawAxes(maxHeight, range, scale, offsetX, offsetY);
+    clearCanvasAndDrawAxes();
     animationFrameId = animateProjectile(velocity, angleRadians, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor);
-    // drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight);
 }
 
 function getSimulationParameters() {
@@ -180,7 +183,7 @@ function isInvalidSimulationParameters(velocity, angle, gravity, initialHeight) 
 }
 
 function clearCanvasAndDrawAxes() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    clearCanvas();
     drawAxes(0, 0); // Keep the grid visible
 }
 

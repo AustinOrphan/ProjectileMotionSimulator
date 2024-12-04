@@ -28,7 +28,6 @@ export function clearCanvas() {
 }
 
 export function drawAxes(maxHeight = 0, range = 0, scale = 1, offsetX = 0, offsetY = 0) {
-    clearCanvas();
 
     // Calculate visible range based on scaling
     let { visibleRangeX, visibleRangeY } = calculateVisibleRange(maxHeight, range);
@@ -41,19 +40,19 @@ export function drawAxes(maxHeight = 0, range = 0, scale = 1, offsetX = 0, offse
     ctx.lineWidth = 1;
 
     // Draw and label grid lines for x-axis
-    drawGridLines('x', offsetX, tickSpacing, visibleRangeX, CANVAS_PADDING, scale);
+    drawGridLines('x', offsetX, tickSpacing, visibleRangeX);
 
     // Draw and label grid lines for y-axis
-    drawGridLines('y', offsetY, tickSpacing, visibleRangeY, CANVAS_PADDING, scale);
+    drawGridLines('y', offsetY, tickSpacing, visibleRangeY);
 
     // Draw main axes
-    drawMainAxes(CANVAS_PADDING);
+    drawMainAxes();
 
     // Add axis titles
-    addAxisTitles(CANVAS_PADDING);
+    addAxisTitles();
 }
 
-function drawGridLines(axis, offset, tickSpacing, visibleRange, padding, scale) {
+function drawGridLines(axis, offset, tickSpacing, visibleRange) {
     let startCoord, endCoord;
     if (axis === 'x') {
         startCoord = offset - (offset % tickSpacing);
@@ -75,7 +74,7 @@ function drawGridLines(axis, offset, tickSpacing, visibleRange, padding, scale) 
         }
 
         // Draw grid line if within canvas bounds
-        if (canvasCoord > CANVAS_PADDING && canvasCoord < (axis === 'x' ? canvas.width - CANVAS_PADDING : canvas.height - CANVAS_PADDING)) {
+        if (isGridLineInBounds(canvasCoord, axis)) {
             ctx.beginPath();
             if (coord === 0) {
                 ctx.strokeStyle = "black";
@@ -106,7 +105,7 @@ function drawGridLines(axis, offset, tickSpacing, visibleRange, padding, scale) 
     }
 }
 
-function drawMainAxes(padding) {
+function drawMainAxes() {
     ctx.strokeStyle = "black";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -117,7 +116,7 @@ function drawMainAxes(padding) {
     ctx.stroke();
 }
 
-function addAxisTitles(padding) {
+function addAxisTitles() {
     ctx.font = "bold 14px Arial";
     ctx.fillStyle = "black";
     ctx.textAlign = "left";
@@ -126,29 +125,41 @@ function addAxisTitles(padding) {
     ctx.fillText("Height (m)", CANVAS_PADDING - 30, CANVAS_PADDING - 10);
 }
 
-function drawSpecificDashedLine(type, measurementValue, padding ) {
-    let canvasCoord, label;
+function drawSpecificDashedLine(type, measurementValue) {
+    let canvasCoord, label, axis;
     switch (type) {
         case 'maxHeight':
             const { canvasY: canvasYMaxHeight } = calculateCanvasCoordinates(0, measurementValue);
             canvasCoord = canvasYMaxHeight;
             label = `Max Height: ${measurementValue.toFixed(2)}m`;
-            ctx.moveTo(CANVAS_PADDING, canvasCoord);
-            ctx.lineTo(canvas.width - CANVAS_PADDING, canvasCoord);
+            axis = 'y';
             break;
         case 'range':
             const { canvasX: canvasXRange } = calculateCanvasCoordinates(measurementValue, 0);
             canvasCoord = canvasXRange;
             label = `Range: ${measurementValue.toFixed(2)}m`;
-            ctx.moveTo(canvasCoord, CANVAS_PADDING);
-            ctx.lineTo(canvasCoord, canvas.height - CANVAS_PADDING);
+            axis = 'x';
             break;
         case 'xAtMaxHeight':
             const { canvasX: canvasXXAtMaxHeight } = calculateCanvasCoordinates(measurementValue, 0);
             canvasCoord = canvasXXAtMaxHeight;
             label = `X@MaxHeight: ${measurementValue.toFixed(2)}m`;
-            ctx.moveTo(canvasCoord, CANVAS_PADDING);
-            ctx.lineTo(canvasCoord, canvas.height - CANVAS_PADDING);
+            axis = 'x';
+            break;
+    }
+
+    if (!isGridLineInBounds(canvasCoord, axis)) {
+        return;
+    }
+
+    switch (axis) {
+        case 'x':
+            ctx.moveTo(canvasCoord, canvas.height - CANVAS_PADDING);
+            ctx.lineTo(canvasCoord, CANVAS_PADDING);
+            break;
+        case 'y':
+            ctx.moveTo(CANVAS_PADDING, canvasCoord);
+            ctx.lineTo(canvas.width - CANVAS_PADDING, canvasCoord);
             break;
     }
 
@@ -169,9 +180,13 @@ export function drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight) {
     ctx.strokeStyle = "gray";
     ctx.lineWidth = 1;
 
-    drawSpecificDashedLine('maxHeight', maxHeight, CANVAS_PADDING);
-    drawSpecificDashedLine('range', range, CANVAS_PADDING);
-    drawSpecificDashedLine('xAtMaxHeight', xAtMaxHeight, CANVAS_PADDING);
+    drawSpecificDashedLine('maxHeight', maxHeight);
+    drawSpecificDashedLine('range', range);
+    drawSpecificDashedLine('xAtMaxHeight', xAtMaxHeight);
     
     ctx.setLineDash([]); // Reset dashed lines
+}
+
+function isGridLineInBounds (coord, axis) {
+    return coord >= CANVAS_PADDING && coord <= (axis === 'x' ? canvas.width - CANVAS_PADDING : canvas.height - CANVAS_PADDING)
 }

@@ -13,7 +13,7 @@ const CUSTOM_GRAVITY_ID = "customGravity";
 const ANGLE_ID = "angle";
 const ANGLE_INPUT_ID = "angleInput";
 const SPEED_CONTROL_ID = "speedControl";
-const SPEED_VALUE_ID = "speedValue";
+const SPEED_CONTROL_INPUT_ID = "speedControlInput";
 const VELOCITY_ID = "velocity";
 const HEIGHT_ID = "height";
 let gravitySelect;
@@ -21,7 +21,7 @@ let customGravityInput;
 let angleInput;
 let angleTextInput;
 let speedControl;
-let speedValue;
+let speedControlInput;
 let velocityInput;
 let heightInput;
 
@@ -31,7 +31,7 @@ export function setupControls() {
     angleInput = document.getElementById(ANGLE_ID);
     angleTextInput = document.getElementById(ANGLE_INPUT_ID);
     speedControl = document.getElementById(SPEED_CONTROL_ID);
-    speedValue = document.getElementById(SPEED_VALUE_ID);
+    speedControlInput = document.getElementById(SPEED_CONTROL_INPUT_ID);
     velocityInput = document.getElementById(VELOCITY_ID);
     heightInput = document.getElementById(HEIGHT_ID);
 
@@ -39,12 +39,14 @@ export function setupControls() {
         customGravityInput.style.display = gravitySelect.value === "0" ? "inline" : "none";
     });
 
-    const inputs = document.querySelectorAll(`#${VELOCITY_ID}, #${ANGLE_ID}, #${HEIGHT_ID}, #${GRAVITY_SELECT_ID}, #${CUSTOM_GRAVITY_ID}, #${SPEED_CONTROL_ID}, #${ANGLE_INPUT_ID}`);
+    const inputs = document.querySelectorAll(`#${VELOCITY_ID}, #${ANGLE_ID}, #${HEIGHT_ID}, #${GRAVITY_SELECT_ID}, #${CUSTOM_GRAVITY_ID}, #${SPEED_CONTROL_ID}, #${SPEED_CONTROL_INPUT_ID}, #${ANGLE_INPUT_ID}`);
     inputs.forEach((input) => {
 
         input.addEventListener("input", () => {
+            let minVal = 0;
             switch (input.id) {
                 case "angleInput":
+                    minVal = 0.1;
                     let angleValue = parseFloat(angleTextInput.value);
                     if (angleValue > 90) {
                         angleTextInput.value = 90;
@@ -52,39 +54,44 @@ export function setupControls() {
                     angleInput.value = angleTextInput.value;
                     break;
                 case "angle":
+                    minVal = 0.1;
                     angleTextInput.value = angleInput.value;
+                    break;
+                case "speedControlInput":
+                    minVal = 0.1;
+                    let speedControlValue = parseFloat(speedControlInput.value);
+                    if (speedControlValue > 10) {
+                        speedControlValue = '10';
+                    }
+                    else if (speedControlValue < 0.1) {
+                        speedControlValue = '0.1';
+                    }
+                    speedControlInput.value = speedControlValue;
+                    speedControl.value = speedControlValue;
+                    break;
+                case "speedControl":
+                    minVal = 0.1;
+                    speedControlInput.value = speedControl.value;
+                    break;
+                case "height":
+                    minVal = 0;
+                    break;
+                case "customGravity":
+                    minVal = 0.1;
+                    break;
+                case "velocity":
+                    minVal = 0.1;
                     break;
             }
 
             if (input.value !== "") {
-                let minVal = 0;
-                switch (input.id) {
-                    case "velocity":
-                        minVal = 0.1;
-                        break;
-                    case "angle":
-                        minVal = 0.1;
-                        break;
-                    case "angleInput":
-                        minVal = 0.1;
-                        break;
-                    case "height":
-                        minVal = 0;
-                        break;
-                    case "customGravity":
-                        minVal = 0.1;
-                        break;
-                }
                 if (minVal > parseFloat(input.value)) {
                     input.value = minVal;
                 }
-            }
-            updateSimulation();
-        });
-    });
+                updateSimulation();
 
-    speedControl.addEventListener('input', () => {
-        speedValue.textContent = speedControl.value + 'x';
+            }
+        });
     });
 
     window.addEventListener("resize", resizeCanvas);
@@ -131,6 +138,10 @@ export function setupControls() {
     canvas.addEventListener("mouseleave", () => {
         isPanning = false;
     });
+
+    document.getElementById("resetPanButton").addEventListener("click", resetPan);
+    document.getElementById("resetZoomButton").addEventListener("click", resetZoom);
+    
 }
 
 export function updateSimulation() {
@@ -148,7 +159,7 @@ export function updateSimulation() {
     const trajectoryPoints = calculateTrajectory(velocity, angleRadians, gravity, initialHeight);
     drawAxes(maxHeight, range, scale, offsetX, offsetY);
     animationFrameId = animateProjectile(velocity, angleRadians, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor);
-    drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight);
+    // drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight);
 }
 
 function getSimulationParameters() {
@@ -160,9 +171,6 @@ function getSimulationParameters() {
     }
     const initialHeight = parseFloat(heightInput.value);
     const speedFactor = parseFloat(speedControl.value);
-
-    angleInput.textContent = angle;
-    speedValue.textContent = speedFactor + 'x';
 
     return { velocity, angle, gravity, initialHeight, speedFactor };
 }
@@ -201,4 +209,13 @@ function calculateSimulationValues(velocity, angle, gravity, initialHeight) {
     return { angleRadians, timeOfFlight, maxHeight, range, xAtMaxHeight };
 }
 
+function resetPan() {
+    offsetX = 0;
+    offsetY = 0;
+    updateSimulation();
+}
 
+function resetZoom() {
+    scale = 1;
+    updateSimulation();
+}

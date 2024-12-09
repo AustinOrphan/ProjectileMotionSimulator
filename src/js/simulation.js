@@ -1,13 +1,21 @@
 import { initializeCanvas, canvas, ctx, drawAxes, drawDashedLinesAndLabels } from './canvas.js';
 import { calculateVisibleRange, calculateCanvasCoordinates } from './scaling.js';
 import { CANVAS_PADDING, NUM_SIMULATION_STEPS, FRAME_TIME_MS } from './constants.js';
+import { getSimulationParameters, calculateSimulationValues, updateSimulation } from './controls.js';
 
 let animationFrameId;
 let trajectoryData = []; // Stores trajectory points for redrawing
+export let isPaused = false;
+let currentTime = 0;
 
 export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor) {
-    let t = 0; // Start time
+    let simulationIndexAtCurrentTime = Math.floor(currentTime * NUM_SIMULATION_STEPS / timeOfFlight); // Current step of the simulation
     const stepDuration = FRAME_TIME_MS / speedFactor;
+    const simulationTimeInput = document.getElementById("simulationTime");
+    const simulationTimeSlider = document.getElementById("simulationTimeSlider");
+
+    // Set the max value of the slider to the time of flight
+    simulationTimeSlider.max = timeOfFlight.toFixed(2);
 
     // Cancel any existing animation
     if (animationFrameId) {
@@ -18,52 +26,52 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
     function drawFrame() {
         // Clear the canvas and redraw the axes
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.setLineDash([]); // Reset dashed lines
-
         drawAxes(maxHeight, range, scale, offsetX, offsetY);
         drawDashedLinesAndLabels(maxHeight, range, velocity * Math.cos(angle) * (velocity * Math.sin(angle) / gravity));
+
+        ctx.setLineDash([]); // Reset dashed lines
 
         // Draw trajectory up to the current time
         ctx.beginPath();
         ctx.strokeStyle = "blue";
         ctx.lineWidth = 2;
 
-        const stepSize = 1; // Adjust step size for optimization
-        for (let i = 0; i <= t; i += stepSize) {
+        let lastX, lastY;
+        for (let i = 0; i <= simulationIndexAtCurrentTime; i++) {
             const time = (timeOfFlight / NUM_SIMULATION_STEPS) * i;
             const { x, y } = getProjectileCoordinates(time, velocity, angle, initialHeight, gravity);
 
             // Convert x and y to canvas coordinates
             const { canvasX, canvasY } = calculateCanvasCoordinates(x, y);
 
-            if (isPointWithinCanvas(canvasX, canvasY)) {
-                // Draw line to the next point unless it's the last point (avoids a weird blue circle around the red projectile)
-                if (i < t) {
-                    ctx.lineTo(canvasX, canvasY);
-                }
-                // Draw projectile at the current position unless it's the last frame
-                else if (t !== NUM_SIMULATION_STEPS) {
-                    ctx.beginPath();
-                    ctx.arc(canvasX, canvasY, 5, 0, 2 * Math.PI); // Projectile as a small circle
-                    ctx.fillStyle = "red";
-                    ctx.fill();
-                } else {
-                    drawDashedLinesAndLabels(maxHeight, range, velocity * Math.cos(angle) * (velocity * Math.sin(angle) / gravity));
-                }
-            } else {
-                // Move to the next point if it's outside the canvas
+            if (!isPointWithinCanvas(canvasX, canvasY) || i === 0) {
                 ctx.moveTo(canvasX, canvasY);
+            } else {
+                ctx.lineTo(canvasX, canvasY);
             }
 
-            // Draw blue line at second to last frame to avoid a weird blue circle around the red projectile and aliasing
-            if (i === t - 1) {
-                ctx.stroke();
-            }
+            lastX = canvasX;
+            lastY = canvasY;
         }
 
-        // Update time for the next frame
-        if (t < NUM_SIMULATION_STEPS) {
-            t += 10 * speedFactor;
+        ctx.stroke();
+
+        // Draw the red circle at the current position
+        if (lastX !== undefined && lastY !== undefined && isPointWithinCanvas(lastX, lastY) && simulationIndexAtCurrentTime < NUM_SIMULATION_STEPS) {
+            ctx.beginPath();
+            ctx.arc(lastX, lastY, 5, 0, 2 * Math.PI); // Projectile as a small circle
+            ctx.fillStyle = "red";
+            ctx.fill();
+        }
+
+        // Update simulation time display and slider
+        currentTime = (simulationIndexAtCurrentTime * timeOfFlight / NUM_SIMULATION_STEPS).toFixed(2);
+        simulationTimeInput.value = currentTime;
+        simulationTimeSlider.value = currentTime;
+
+        // Request the next frame if the simulation is not over and not paused
+        if (simulationIndexAtCurrentTime < NUM_SIMULATION_STEPS && !isPaused) {
+            simulationIndexAtCurrentTime += 10 * speedFactor;
             animationFrameId = window.requestAnimationFrame(drawFrame);
         }
     }
@@ -71,7 +79,7 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
     drawFrame();
 }
 
-function getProjectileCoordinates(time, velocity, angle, initialHeight, gravity) {
+export function getProjectileCoordinates(time, velocity, angle, initialHeight, gravity) {
     const x = velocity * Math.cos(angle) * time;
     const y = initialHeight + velocity * Math.sin(angle) * time - 0.5 * gravity * Math.pow(time, 2);
     return { x, y };
@@ -122,4 +130,12 @@ function drawTrajectory() {
         ctx.moveTo(x, y);
     });
     ctx.stroke();
+}
+
+export function togglePlayPause() {
+    isPaused = !isPaused;
+    if (!isPaused) {
+        currentTime = parseFloat(document.getElementById("simulationTime").value);
+        updateSimulation();
+    }
 }

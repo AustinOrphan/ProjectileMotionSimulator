@@ -1,6 +1,6 @@
 import { canvas, clearCanvas, drawAxes, resizeCanvas } from './canvas.js';
 import { calculateCanvasCoordinates } from './scaling.js';
-import { animateProjectile, calculateTrajectory } from './simulation.js';
+import { animateProjectile, calculateTrajectory, togglePlayPause, isPaused } from './simulation.js';
 import { DEG_TO_RAD } from './constants.js';
 
 export let scale = 1;
@@ -16,6 +16,9 @@ const SPEED_CONTROL_ID = "speedControl";
 const SPEED_CONTROL_INPUT_ID = "speedControlInput";
 const VELOCITY_ID = "velocity";
 const HEIGHT_ID = "height";
+const SIMULATION_TIME_SLIDER_ID = "simulationTimeSlider";
+const SIMULATION_TIME_ID = "simulationTime";
+const PLAY_PAUSE_BUTTON_ID = "playPauseButton";
 let gravitySelect;
 let customGravityInput;
 let angleInput;
@@ -24,6 +27,9 @@ let speedControl;
 let speedControlInput;
 let velocityInput;
 let heightInput;
+let simulationTimeSlider;
+let simulationTimeInput;
+let playPauseButton;
 
 export function setupControls() {
     gravitySelect = document.getElementById(GRAVITY_SELECT_ID);
@@ -34,16 +40,19 @@ export function setupControls() {
     speedControlInput = document.getElementById(SPEED_CONTROL_INPUT_ID);
     velocityInput = document.getElementById(VELOCITY_ID);
     heightInput = document.getElementById(HEIGHT_ID);
+    simulationTimeSlider = document.getElementById(SIMULATION_TIME_SLIDER_ID);
+    simulationTimeInput = document.getElementById(SIMULATION_TIME_ID);
+    playPauseButton = document.getElementById(PLAY_PAUSE_BUTTON_ID);
 
     gravitySelect.addEventListener("change", () => {
         customGravityInput.style.display = gravitySelect.value === "0" ? "inline" : "none";
     });
 
-    const inputs = document.querySelectorAll(`#${VELOCITY_ID}, #${ANGLE_ID}, #${HEIGHT_ID}, #${GRAVITY_SELECT_ID}, #${CUSTOM_GRAVITY_ID}, #${SPEED_CONTROL_ID}, #${SPEED_CONTROL_INPUT_ID}, #${ANGLE_INPUT_ID}`);
+    const inputs = document.querySelectorAll(`#${VELOCITY_ID}, #${ANGLE_ID}, #${HEIGHT_ID}, #${GRAVITY_SELECT_ID}, #${CUSTOM_GRAVITY_ID}, #${SPEED_CONTROL_ID}, #${SPEED_CONTROL_INPUT_ID}, #${ANGLE_INPUT_ID}, #${SIMULATION_TIME_ID}, #${SIMULATION_TIME_SLIDER_ID}`);
     inputs.forEach((input) => {
-
         input.addEventListener("input", () => {
             let minVal = 0;
+            let maxVal = -1;
             switch (input.id) {
                 case "angleInput":
                     minVal = 0.1;
@@ -82,16 +91,39 @@ export function setupControls() {
                 case "velocity":
                     minVal = 0.1;
                     break;
+                case "simulationTime":
+                    minVal = 0;
+                    maxVal = simulationTimeSlider.max;
+                    simulationTimeSlider.value = simulationTimeInput.value;
+                    break;
+                case "simulationTimeSlider":
+                    minVal = 0;
+                    simulationTimeInput.value = simulationTimeSlider.value;
+                    break;
             }
 
             if (input.value !== "") {
                 if (minVal > parseFloat(input.value)) {
                     input.value = minVal;
                 }
-                updateSimulation();
-
+                else if (maxVal !== -1 && maxVal < parseFloat(input.value)) {
+                    input.value = maxVal;
+                }
+                pauseSimulationAndRedraw();
             }
         });
+    });
+
+    simulationTimeSlider.addEventListener("input", () => {
+        const simulationTime = parseFloat(simulationTimeSlider.value);
+        simulationTimeInput.value = simulationTime;
+        pauseSimulationAndRedraw();
+    });
+
+    simulationTimeInput.addEventListener("input", () => {
+        const simulationTime = parseFloat(simulationTimeInput.value);
+        simulationTimeSlider.value = simulationTime;
+        pauseSimulationAndRedraw();
     });
 
     window.addEventListener("resize", resizeCanvas);
@@ -101,7 +133,7 @@ export function setupControls() {
         const zoomFactor = 0.1;
         scale += event.deltaY < 0 ? zoomFactor : -zoomFactor; // Zoom in/out
         scale = Math.min(Math.max(scale, 0.5), 2); // Limit zoom level
-        updateSimulation();
+        pauseSimulationAndRedraw();
     });
 
     let isPanning = false;
@@ -135,7 +167,7 @@ export function setupControls() {
             startX = event.offsetX;
             startY = event.offsetY;
 
-            updateSimulation(); // Redraw the canvas with updated offsets
+            pauseSimulationAndRedraw(); // Redraw the canvas with updated offsets
         }
     });
 
@@ -146,6 +178,18 @@ export function setupControls() {
     document.getElementById("resetPanButton").addEventListener("click", resetPan);
     document.getElementById("resetZoomButton").addEventListener("click", resetZoom);
     
+    playPauseButton.addEventListener("click", () => {
+        togglePlayPause();
+        playPauseButton.textContent = isPaused ? "Play" : "Pause";
+    });
+}
+
+function pauseSimulationAndRedraw() {
+    if (!isPaused) {
+        togglePlayPause();
+    }
+    cancelExistingAnimation();
+    updateSimulation();
 }
 
 export function updateSimulation() {
@@ -165,7 +209,7 @@ export function updateSimulation() {
     animationFrameId = animateProjectile(velocity, angleRadians, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor);
 }
 
-function getSimulationParameters() {
+export function getSimulationParameters() {
     const velocity = parseFloat(velocityInput.value);
     const angle = parseFloat(angleInput.value);
     let gravity = parseFloat(gravitySelect.value);
@@ -194,7 +238,7 @@ function cancelExistingAnimation() {
     }
 }
 
-function calculateSimulationValues(velocity, angle, gravity, initialHeight) {
+export function calculateSimulationValues(velocity, angle, gravity, initialHeight) {
     const angleRadians = angle * DEG_TO_RAD;
     const timeOfFlight =
         (velocity * Math.sin(angleRadians) +
@@ -215,10 +259,10 @@ function calculateSimulationValues(velocity, angle, gravity, initialHeight) {
 function resetPan() {
     offsetX = 0;
     offsetY = 0;
-    updateSimulation();
+    pauseSimulationAndRedraw();
 }
 
 function resetZoom() {
     scale = 1;
-    updateSimulation();
+    pauseSimulationAndRedraw();
 }

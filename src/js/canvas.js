@@ -94,12 +94,16 @@ function drawGridLines(axis, offset, tickSpacing, visibleRange) {
 
             const label = (coord).toFixed(1); // Adjust label for scaling
             ctx.fillStyle = "black";
-            if (axis === 'x') {
+            if (coord === 0) {
+                ctx.textAlign = "right";
+                ctx.fillText("0", CANVAS_PADDING - 5, canvas.height - CANVAS_PADDING + 20)
+            }
+            else if (axis === 'x') {
                 ctx.textAlign = "left";
-                ctx.fillText(coord === 0 ? "0" : label, canvasCoord - 10, canvas.height - CANVAS_PADDING + 20);
+                ctx.fillText(label, canvasCoord - 10, canvas.height - CANVAS_PADDING + 20);
             } else {
                 ctx.textAlign = "right";
-                ctx.fillText(coord === 0 ? "0" : label, CANVAS_PADDING - 5, canvasCoord + 5);
+                ctx.fillText(label, CANVAS_PADDING - 5, canvasCoord + 5);
             }
         }
     }

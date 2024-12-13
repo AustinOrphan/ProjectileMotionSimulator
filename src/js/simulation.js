@@ -43,7 +43,7 @@ export function animateProjectile(timeOfFlight, maxHeight, range, xAtMaxHeight, 
             // Convert x and y to canvas coordinates
             const { canvasX, canvasY } = calculateCanvasCoordinates(x, y);
 
-            if (i === 0) {
+            if (i === 0 || !isPointWithinCanvas(lastX, lastY) || !isPointWithinCanvas(canvasX, canvasY)) {
                 ctx.moveTo(canvasX, canvasY);
             } else {
                 ctx.lineTo(canvasX, canvasY);

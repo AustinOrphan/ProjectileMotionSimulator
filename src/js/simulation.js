@@ -1,6 +1,6 @@
 import { canvas, ctx, drawAxes, drawDashedLinesAndLabels } from './canvas.js';
 import { calculateCanvasCoordinates } from './scaling.js';
-import { CANVAS_PADDING, NUM_SIMULATION_STEPS, FRAME_TIME_MS } from './constants.js';
+import { CANVAS_PADDING, NUM_SIMULATION_STEPS } from './constants.js';
 import { updateSimulation, trajectoryData } from './controls.js';
 
 let animationFrameId;
@@ -24,53 +24,13 @@ export function animateProjectile(timeOfFlight, maxHeight, range, xAtMaxHeight, 
     currentTime = startTime * NUM_SIMULATION_STEPS / timeOfFlight;
 
     function drawFrame() {
-        // Clear the canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Redraw the axes and labels
+        clearCanvas();
         drawAxes(maxHeight, range, scale, offsetX, offsetY);
         drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight);
 
         ctx.setLineDash([]); // Reset dashed lines
 
-        // Draw trajectory up to the current time
-        ctx.beginPath();
-        ctx.strokeStyle = "blue";
-        ctx.lineWidth = 2;
-
-        let lastX, lastY;
-        for (let i = 0; i <= currentTime && i < trajectoryData.length ; i++) {
-            const { x, y } = trajectoryData[i];
-
-            // Convert x and y to canvas coordinates
-            const { canvasX, canvasY } = calculateCanvasCoordinates(x, y);
-
-            if (i === 0 || !isPointWithinCanvas(lastX, lastY) || !isPointWithinCanvas(canvasX, canvasY)) {
-                ctx.moveTo(canvasX, canvasY);
-            } else {
-                ctx.lineTo(canvasX, canvasY);
-            }
-
-            lastX = canvasX;
-            lastY = canvasY;
-        }
-
-        ctx.stroke();
-
-        // Draw the red circle at the current position
-        if (lastX !== undefined && lastY !== undefined && isPointWithinCanvas(lastX, lastY) && currentTime < trajectoryData.length) {
-            ctx.beginPath();
-            ctx.arc(lastX, lastY, 5, 0, 2 * Math.PI); // Projectile as a small circle
-            ctx.fillStyle = "red";
-            ctx.fill();
-
-            // Display the x and y coordinates
-            const { x, y } = trajectoryData[Math.floor(currentTime)];
-            ctx.fillStyle = "black";
-            ctx.font = "12px Arial";
-            ctx.fillText(`x: ${x.toFixed(2)} m`, lastX + 10, lastY - 10);
-            ctx.fillText(`y: ${y.toFixed(2)} m`, lastX + 10, lastY + 10);
-        }
+        drawTrajectory();
 
         // Update simulation time display and slider
         const currentTimeInSeconds = (currentTime * timeOfFlight / NUM_SIMULATION_STEPS).toFixed(2);
@@ -92,6 +52,47 @@ export function animateProjectile(timeOfFlight, maxHeight, range, xAtMaxHeight, 
     }
 
     drawFrame();
+}
+
+function drawTrajectory() {
+    ctx.beginPath();
+    ctx.strokeStyle = "blue";
+    ctx.lineWidth = 2;
+
+    let lastX, lastY;
+    for (let i = 0; i <= currentTime && i < trajectoryData.length; i++) {
+        const { x, y } = trajectoryData[i];
+        const { canvasX, canvasY } = calculateCanvasCoordinates(x, y);
+
+        if (i === 0 || !isPointWithinCanvas(lastX, lastY) || !isPointWithinCanvas(canvasX, canvasY)) {
+            ctx.moveTo(canvasX, canvasY);
+        } else {
+            ctx.lineTo(canvasX, canvasY);
+        }
+
+        lastX = canvasX;
+        lastY = canvasY;
+    }
+
+    ctx.stroke();
+
+    if (lastX !== undefined && lastY !== undefined && isPointWithinCanvas(lastX, lastY) && currentTime < trajectoryData.length) {
+        ctx.beginPath();
+        ctx.arc(lastX, lastY, 5, 0, 2 * Math.PI); // Projectile as a small circle
+        ctx.fillStyle = "red";
+        ctx.fill();
+
+        // Display the x and y coordinates
+        const { x, y } = trajectoryData[Math.floor(currentTime)];
+        ctx.fillStyle = "black";
+        ctx.font = "12px Arial";
+        ctx.fillText(`x: ${x.toFixed(2)} m`, lastX + 10, lastY - 10);
+        ctx.fillText(`y: ${y.toFixed(2)} m`, lastX + 10, lastY + 10);
+    }
+}
+
+function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 export function getProjectileCoordinates(time, velocity, angle, initialHeight, gravity) {

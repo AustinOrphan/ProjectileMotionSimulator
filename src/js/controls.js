@@ -1,4 +1,4 @@
-import { canvas, clearCanvas, drawAxes, resizeCanvas } from './canvas.js';
+import { canvas, resizeCanvas } from './canvas.js';
 import { calculateCanvasCoordinates } from './scaling.js';
 import { animateProjectile, calculateTrajectory, togglePlayPause, isPaused, calculateSimulationValues, restartAnimation } from './simulation.js';
 
@@ -6,6 +6,8 @@ export let scale = 1;
 export let offsetX = 0;
 export let offsetY = 0;
 let animationFrameId;
+export let minScale = 0.5;
+export let maxScale = 2;
 export let trajectoryData = [];
 
 const GRAVITY_SELECT_ID = "gravitySelect";
@@ -19,6 +21,7 @@ const HEIGHT_ID = "height";
 const SIMULATION_TIME_SLIDER_ID = "simulationTimeSlider";
 const SIMULATION_TIME_ID = "simulationTime";
 const PLAY_PAUSE_BUTTON_ID = "playPauseButton";
+
 let gravitySelect;
 let customGravityInput;
 let angleInput;
@@ -105,9 +108,9 @@ function handleInputChange(event) {
             minVal = 0.1;
             let speedControlValue = parseFloat(speedControlInput.value);
             if (speedControlValue > 10) {
-                speedControlValue = '10';
+                speedControlValue = 10;
             } else if (speedControlValue < 0.1) {
-                speedControlValue = '0.1';
+                speedControlValue = 0.1;
             }
             speedControlInput.value = speedControlValue;
             speedControl.value = speedControlValue;
@@ -149,8 +152,9 @@ function handleInputChange(event) {
 function handleCanvasZoom(event) {
     event.preventDefault();
     const zoomFactor = 0.1;
-    scale += event.deltaY < 0 ? zoomFactor : -zoomFactor;
-    scale = Math.min(Math.max(scale, 0.5), 2);
+    const delta = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? event.deltaY * 0.1 : event.deltaY;
+    scale += delta < 0 ? zoomFactor : -zoomFactor;
+    scale = Math.min(Math.max(scale, minScale), maxScale);
     pauseSimulationAndRedraw();
 }
 
@@ -172,8 +176,11 @@ function handlePanning(event) {
         const { canvasX: startCanvasX, canvasY: startCanvasY } = calculateCanvasCoordinates(startX, startY);
         const { canvasX: currentCanvasX, canvasY: currentCanvasY } = calculateCanvasCoordinates(event.offsetX, event.offsetY);
 
-        const dx = (currentCanvasX - startCanvasX) / scale;
-        const dy = (currentCanvasY - startCanvasY) / scale;
+        // Adjust panning speed based on the current zoom level
+        const panningSpeedFactor = 1 / (scale * scale);
+
+        const dx = (currentCanvasX - startCanvasX) * panningSpeedFactor / 10;
+        const dy = (currentCanvasY - startCanvasY) * panningSpeedFactor / 10;
 
         offsetX -= dx;
         offsetY += dy;
@@ -192,7 +199,6 @@ function pauseSimulationAndRedraw() {
     if (!isPaused) {
         togglePlayPause();
     }
-    playPauseButton.textContent = isPaused ? "Play" : "Pause";
     cancelExistingAnimation();
     updateSimulation();
 }
@@ -201,7 +207,6 @@ export function updateSimulation() {
     const { velocity, angle, gravity, initialHeight, speedFactor } = getSimulationParameters();
 
     if (isInvalidSimulationParameters(velocity, angle, gravity, initialHeight)) {
-        // clearCanvasAndDrawAxes();
         return;
     }
 
@@ -211,7 +216,6 @@ export function updateSimulation() {
 
     trajectoryData = calculateTrajectory(velocity, angle, gravity, initialHeight);
 
-    // clearCanvasAndDrawAxes();
     const startTime = parseFloat(simulationTimeInput.value);
     animationFrameId = animateProjectile(timeOfFlight, maxHeight, range, xAtMaxHeight, scale, offsetX, offsetY, speedFactor, startTime);
 }
@@ -220,11 +224,33 @@ export function getSimulationParameters() {
     const velocity = parseFloat(velocityInput.value);
     const angle = parseFloat(angleInput.value);
     let gravity = parseFloat(gravitySelect.value);
-    if (gravity === 0) {
+    const threshold = 0.0001;
+    if (Math.abs(gravity) < threshold) {
         gravity = parseFloat(customGravityInput.value);
     }
     const initialHeight = parseFloat(heightInput.value);
     const speedFactor = parseFloat(speedControl.value);
+
+    if (isNaN(velocity) || velocity <= 0) {
+        alert("Invalid velocity value. Please enter a positive number.");
+        return null;
+    }
+    if (isNaN(angle) || angle <= 0 || angle > 90) {
+        alert("Invalid angle value. Please enter a number between 0 and 90.");
+        return null;
+    }
+    if (isNaN(gravity) || gravity <= 0) {
+        alert("Invalid gravity value. Please enter a positive number.");
+        return null;
+    }
+    if (isNaN(initialHeight) || initialHeight < 0) {
+        alert("Invalid initial height value. Please enter a non-negative number.");
+        return null;
+    }
+    if (isNaN(speedFactor) || speedFactor <= 0) {
+        alert("Invalid speed factor value. Please enter a positive number.");
+        return null;
+    }
 
     return { velocity, angle, gravity, initialHeight, speedFactor };
 }

@@ -1,6 +1,6 @@
 import { canvas, clearCanvas, drawAxes, resizeCanvas } from './canvas.js';
 import { calculateCanvasCoordinates } from './scaling.js';
-import { animateProjectile, calculateTrajectory, togglePlayPause, isPaused, calculateSimulationValues } from './simulation.js';
+import { animateProjectile, calculateTrajectory, togglePlayPause, isPaused, calculateSimulationValues, restartAnimation } from './simulation.js';
 
 export let scale = 1;
 export let offsetX = 0;
@@ -77,8 +77,10 @@ export function setupControls() {
     document.getElementById("resetZoomButton").addEventListener("click", resetZoom);
     
     playPauseButton.addEventListener("click", () => {
+        if (playPauseButton.textContent === "Replay") {
+            restartAnimation();
+        }
         togglePlayPause();
-        playPauseButton.textContent = isPaused ? "Play" : "Pause";
     });
 }
 
@@ -229,11 +231,6 @@ export function getSimulationParameters() {
 
 function isInvalidSimulationParameters(velocity, angle, gravity, initialHeight) {
     return isNaN(velocity) || isNaN(angle) || isNaN(gravity) || isNaN(initialHeight) || velocity <= 0 || gravity <= 0;
-}
-
-function clearCanvasAndDrawAxes() {
-    clearCanvas();
-    drawAxes(0, 0);
 }
 
 function cancelExistingAnimation() {

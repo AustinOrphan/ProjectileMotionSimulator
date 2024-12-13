@@ -36,9 +36,6 @@ export function drawAxes(maxHeight = 0, range = 0, scale = 1, offsetX = 0, offse
     const baseTickSpacingWorldUnits = Math.min(visibleRangeX, visibleRangeY) / 5; // Tick spacing in world units
     const tickSpacing = baseTickSpacingWorldUnits * scale; // Adjust spacing for zoom
 
-    ctx.strokeStyle = "#e0e0e0"; // Light gray for grid lines
-    ctx.lineWidth = 1;
-
     // Draw and label grid lines for x-axis
     drawGridLines('x', offsetX, tickSpacing, visibleRangeX);
 
@@ -126,7 +123,6 @@ function addAxisTitles() {
     ctx.font = "bold 14px Arial";
     ctx.fillStyle = "black";
     ctx.textAlign = "left";
-    // ctx.fillText("0", PADDING - 10, canvas.height - PADDING + 15);
     ctx.fillText("Range (m)", canvas.width - CANVAS_PADDING - 50, canvas.height - CANVAS_PADDING + 35);
     ctx.fillText("Height (m)", CANVAS_PADDING - 30, CANVAS_PADDING - 10);
 }

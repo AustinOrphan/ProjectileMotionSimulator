@@ -84,6 +84,10 @@ export function animateProjectile(timeOfFlight, maxHeight, range, xAtMaxHeight, 
             }
             currentTime += 10 * speedFactor;
             animationFrameId = window.requestAnimationFrame(drawFrame);
+        } else if (currentTime >= trajectoryData.length - 10) {
+            const playPauseButton = document.getElementById("playPauseButton");
+            togglePlayPause();
+            playPauseButton.textContent = "Replay";
         }
     }
 
@@ -129,10 +133,24 @@ export function calculateTrajectory(velocity, angle, gravity, initialHeight) {
 }
 
 export function togglePlayPause() {
+    const playPauseButton = document.getElementById("playPauseButton");
+
     isPaused = !isPaused;
+    playPauseButton.textContent = isPaused ? "Play" : "Pause";
     if (!isPaused) {
         const simulationTimeInput = document.getElementById("simulationTime");
         currentTime = parseFloat(simulationTimeInput.value) * NUM_SIMULATION_STEPS / trajectoryData.length;
         updateSimulation();
     }
+}
+
+export function restartAnimation() {
+    const simulationTimeInput = document.getElementById("simulationTime");
+    const simulationTimeSlider = document.getElementById("simulationTimeSlider");
+
+    currentTime = 0;
+
+    // Reset the time slider and input
+    simulationTimeInput.value = currentTime;
+    simulationTimeSlider.value = currentTime;
 }

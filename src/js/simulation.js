@@ -24,8 +24,10 @@ export function animateProjectile(timeOfFlight, maxHeight, range, xAtMaxHeight, 
     currentTime = startTime * NUM_SIMULATION_STEPS / timeOfFlight;
 
     function drawFrame() {
-        // Clear the canvas and redraw the axes
+        // Clear the canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Redraw the axes and labels
         drawAxes(maxHeight, range, scale, offsetX, offsetY);
         drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight);
 

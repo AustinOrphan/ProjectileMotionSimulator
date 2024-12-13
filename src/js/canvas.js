@@ -91,9 +91,10 @@ function drawGridLines(axis, offset, tickSpacing, visibleRange) {
                 ctx.lineTo(canvas.width - CANVAS_PADDING, canvasCoord);
             }
             ctx.stroke();
-
+            ctx.closePath();
             const label = (coord).toFixed(1); // Adjust label for scaling
             ctx.fillStyle = "black";
+            ctx.font = "12px Arial";
             if (coord === 0) {
                 ctx.textAlign = "right";
                 ctx.fillText("0", CANVAS_PADDING - 5, canvas.height - CANVAS_PADDING + 20)
@@ -118,6 +119,7 @@ function drawMainAxes() {
     ctx.moveTo(CANVAS_PADDING, canvas.height - CANVAS_PADDING); // y-axis
     ctx.lineTo(CANVAS_PADDING, CANVAS_PADDING);
     ctx.stroke();
+    ctx.closePath();
 }
 
 function addAxisTitles() {
@@ -156,6 +158,11 @@ function drawSpecificDashedLine(type, measurementValue) {
         return;
     }
 
+    ctx.beginPath();
+    ctx.strokeStyle = "gray";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]); // Dashed line pattern: 5px dash, 5px space
+
     switch (axis) {
         case 'x':
             ctx.moveTo(canvasCoord, canvas.height - CANVAS_PADDING);
@@ -168,6 +175,8 @@ function drawSpecificDashedLine(type, measurementValue) {
     }
 
     ctx.stroke();
+    ctx.closePath();
+
     let textX, textY;
     if (type === 'maxHeight') {
         textX = CANVAS_PADDING + 10;
@@ -176,10 +185,12 @@ function drawSpecificDashedLine(type, measurementValue) {
         textX = canvasCoord + 5;
         textY = canvas.height - CANVAS_PADDING - 10;
     }
+    ctx.font = "12px Arial";
     ctx.fillText(label, textX, textY);
 }
 
 export function drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight) {
+    ctx.beginPath();
     ctx.setLineDash([5, 5]); // Dashed line pattern: 5px dash, 5px space
     ctx.strokeStyle = "gray";
     ctx.lineWidth = 1;
@@ -187,7 +198,7 @@ export function drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight) {
     drawSpecificDashedLine('maxHeight', maxHeight);
     drawSpecificDashedLine('range', range);
     drawSpecificDashedLine('xAtMaxHeight', xAtMaxHeight);
-    
+    ctx.closePath();
     ctx.setLineDash([]); // Reset dashed lines
 }
 

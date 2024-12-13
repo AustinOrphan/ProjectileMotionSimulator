@@ -199,7 +199,7 @@ export function updateSimulation() {
     const { velocity, angle, gravity, initialHeight, speedFactor } = getSimulationParameters();
 
     if (isInvalidSimulationParameters(velocity, angle, gravity, initialHeight)) {
-        clearCanvasAndDrawAxes();
+        // clearCanvasAndDrawAxes();
         return;
     }
 
@@ -209,7 +209,7 @@ export function updateSimulation() {
 
     trajectoryData = calculateTrajectory(velocity, angle, gravity, initialHeight);
 
-    clearCanvasAndDrawAxes();
+    // clearCanvasAndDrawAxes();
     const startTime = parseFloat(simulationTimeInput.value);
     animationFrameId = animateProjectile(timeOfFlight, maxHeight, range, xAtMaxHeight, scale, offsetX, offsetY, speedFactor, startTime);
 }

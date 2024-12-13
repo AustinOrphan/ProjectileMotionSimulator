@@ -61,6 +61,13 @@ export function animateProjectile(timeOfFlight, maxHeight, range, xAtMaxHeight, 
             ctx.arc(lastX, lastY, 5, 0, 2 * Math.PI); // Projectile as a small circle
             ctx.fillStyle = "red";
             ctx.fill();
+
+            // Display the x and y coordinates
+            const { x, y } = trajectoryData[Math.floor(currentTime)];
+            ctx.fillStyle = "black";
+            ctx.font = "12px Arial";
+            ctx.fillText(`x: ${x.toFixed(2)} m`, lastX + 10, lastY - 10);
+            ctx.fillText(`y: ${y.toFixed(2)} m`, lastX + 10, lastY + 10);
         }
 
         // Update simulation time display and slider
@@ -69,7 +76,6 @@ export function animateProjectile(timeOfFlight, maxHeight, range, xAtMaxHeight, 
         simulationTimeSlider.value = currentTimeInSeconds;
 
         // Request the next frame if the simulation is not over and not paused
-        
         if (currentTime <= trajectoryData.length - 1 && !isPaused) {
             if (currentTime >= trajectoryData.length - 10) {
                 currentTime = trajectoryData.length - 1;

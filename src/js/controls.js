@@ -188,6 +188,7 @@ function pauseSimulationAndRedraw() {
     if (!isPaused) {
         togglePlayPause();
     }
+    playPauseButton.textContent = isPaused ? "Play" : "Pause";
     cancelExistingAnimation();
     updateSimulation();
 }

@@ -7,8 +7,7 @@ let animationFrameId;
 export let isPaused = false;
 let currentTime = 0;
 
-export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor, startTime = 0) {
-    const stepDuration = FRAME_TIME_MS / speedFactor;
+export function animateProjectile(timeOfFlight, maxHeight, range, xAtMaxHeight, scale, offsetX, offsetY, speedFactor, startTime = 0) {
     const simulationTimeInput = document.getElementById("simulationTime");
     const simulationTimeSlider = document.getElementById("simulationTimeSlider");
 
@@ -28,7 +27,7 @@ export function animateProjectile(velocity, angle, gravity, timeOfFlight, maxHei
         // Clear the canvas and redraw the axes
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawAxes(maxHeight, range, scale, offsetX, offsetY);
-        drawDashedLinesAndLabels(maxHeight, range, velocity * Math.cos(angle) * (velocity * Math.sin(angle) / gravity));
+        drawDashedLinesAndLabels(maxHeight, range, xAtMaxHeight);
 
         ctx.setLineDash([]); // Reset dashed lines
 
@@ -95,11 +94,21 @@ function isPointWithinCanvas(xCoord, yCoord) {
     return isWithinCanvasX && isWithinCanvasY;
 }
 
+export function calculateSimulationValues(velocity, angle, gravity, initialHeight) {
+    const angleRadians = angle * Math.PI / 180;
+    const vx = velocity * Math.cos(angleRadians);
+    const vy = velocity * Math.sin(angleRadians);
+    const timeOfFlight = (vy + Math.sqrt(Math.pow(vy, 2) + 2 * gravity * initialHeight)) / gravity;
+    const maxHeight = initialHeight + Math.pow(vy, 2) / (2 * gravity);
+    const range = vx * timeOfFlight;
+    const xAtMaxHeight = vx * (vy / gravity);
+
+    return { angleRadians, timeOfFlight, maxHeight, range, xAtMaxHeight, vx, vy };
+}
+
 export function calculateTrajectory(velocity, angle, gravity, initialHeight) {
     const points = [];
-    const vx = velocity * Math.cos(angle); // Velocity in x direction
-    const vy = velocity * Math.sin(angle); // Velocity in y direction
-    const timeOfFlight = (vy + Math.sqrt(Math.pow(vy, 2) + 2 * gravity * initialHeight)) / gravity;
+    const { timeOfFlight, vx, vy } = calculateSimulationValues(velocity, angle, gravity, initialHeight);
 
     for (let i = 0; i <= NUM_SIMULATION_STEPS; i++) {
         const time = (timeOfFlight / NUM_SIMULATION_STEPS) * i;

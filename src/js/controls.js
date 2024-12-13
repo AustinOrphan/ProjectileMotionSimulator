@@ -7,6 +7,7 @@ export let scale = 1;
 export let offsetX = 0;
 export let offsetY = 0;
 let animationFrameId;
+export let trajectoryData = [];
 
 const GRAVITY_SELECT_ID = "gravitySelect";
 const CUSTOM_GRAVITY_ID = "customGravity";
@@ -205,9 +206,12 @@ export function updateSimulation() {
 
     const { angleRadians, timeOfFlight, maxHeight, range, xAtMaxHeight } = calculateSimulationValues(velocity, angle, gravity, initialHeight);
 
-    const trajectoryPoints = calculateTrajectory(velocity, angleRadians, gravity, initialHeight);
+    // Calculate trajectory data once and store it in the global variable
+    trajectoryData = calculateTrajectory(velocity, angleRadians, gravity, initialHeight);
+
     clearCanvasAndDrawAxes();
-    animationFrameId = animateProjectile(velocity, angleRadians, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor);
+    const startTime = parseFloat(simulationTimeInput.value);
+    animationFrameId = animateProjectile(velocity, angleRadians, gravity, timeOfFlight, maxHeight, range, initialHeight, scale, offsetX, offsetY, speedFactor, startTime);
 }
 
 export function getSimulationParameters() {

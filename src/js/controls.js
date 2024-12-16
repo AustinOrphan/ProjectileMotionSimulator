@@ -70,11 +70,22 @@ export function setupControls() {
 
     window.addEventListener("resize", resizeCanvas);
 
-    canvas.addEventListener("wheel", handleCanvasZoom);
+    canvas.addEventListener("wheel", (event) => handleCanvasZoom(event, event.deltaMode === WheelEvent.DOM_DELTA_LINE ? event.deltaY * 0.1 : event.deltaY));
     canvas.addEventListener("mousedown", startPanning);
     canvas.addEventListener("mouseup", stopPanning);
-    canvas.addEventListener("mousemove", handlePanning);
+    canvas.addEventListener("mousemove", (event) => {
+        if (isPanning) {
+            handlePanning(event, startX, startY, event.offsetX, event.offsetY, "mouse");
+            startX = event.offsetX;
+            startY = event.offsetY;
+        }
+    });
     canvas.addEventListener("mouseleave", stopPanning);
+
+    // Add touch event listeners for mobile and tablet controls
+    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+    canvas.addEventListener("touchend", handleTouchEnd, { passive: false });
 
     document.getElementById("resetPanButton").addEventListener("click", resetPan);
     document.getElementById("resetZoomButton").addEventListener("click", resetZoom);
@@ -149,10 +160,9 @@ function handleInputChange(event) {
     }
 }
 
-function handleCanvasZoom(event) {
+function handleCanvasZoom(event, delta) {
     event.preventDefault();
     const zoomFactor = 0.1;
-    const delta = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? event.deltaY * 0.1 : event.deltaY;
     scale += delta < 0 ? zoomFactor : -zoomFactor;
     scale = Math.min(Math.max(scale, minScale), maxScale);
     pauseSimulationAndRedraw();
@@ -171,28 +181,72 @@ function stopPanning() {
     isPanning = false;
 }
 
-function handlePanning(event) {
-    if (isPanning) {
-        const { canvasX: startCanvasX, canvasY: startCanvasY } = calculateCanvasCoordinates(startX, startY);
-        const { canvasX: currentCanvasX, canvasY: currentCanvasY } = calculateCanvasCoordinates(event.offsetX, event.offsetY);
+function handlePanning(event, startX, startY, currentX, currentY, inputType) {
+    const { canvasX: startCanvasX, canvasY: startCanvasY } = calculateCanvasCoordinates(startX, startY);
+    const { canvasX: currentCanvasX, canvasY: currentCanvasY } = calculateCanvasCoordinates(currentX, currentY);
 
-        // Adjust panning speed based on the current zoom level
-        const panningSpeedFactor = 1 / (scale * scale);
+    // Adjust panning speed based on the current zoom level and input type
+    const panningSpeedFactor = 1 / (scale * scale);
+    const screenSizeFactor = Math.max(15000 / canvas.width, .5);
 
-        const dx = (currentCanvasX - startCanvasX) * panningSpeedFactor / 10;
-        const dy = (currentCanvasY - startCanvasY) * panningSpeedFactor / 10;
+    const dx = (currentCanvasX - startCanvasX) * panningSpeedFactor / screenSizeFactor;
+    const dy = (currentCanvasY - startCanvasY) * panningSpeedFactor / screenSizeFactor;
 
-        offsetX -= dx;
-        offsetY += dy;
+    offsetX -= dx;
+    offsetY += dy;
 
-        if (offsetX < 0) offsetX = 0;
-        if (offsetY > 0) offsetY = 0;
+    if (offsetX < 0) offsetX = 0;
+    if (offsetY > 0) offsetY = 0;
 
-        startX = event.offsetX;
-        startY = event.offsetY;
+    pauseSimulationAndRedraw();
+}
+
+// Touch event handlers for mobile and tablet controls
+let lastTouchDistance = 0;
+
+function handleTouchStart(event) {
+    if (event.touches.length === 1) {
+        isPanning = true;
+        startX = event.touches[0].clientX;
+        startY = event.touches[0].clientY;
+    } else if (event.touches.length === 2) {
+        isPanning = false;
+        lastTouchDistance = getTouchDistance(event.touches);
+    }
+}
+
+function handleTouchMove(event) {
+    event.preventDefault();
+    if (isPanning && event.touches.length === 1) {
+        handlePanning(event, startX, startY, event.touches[0].clientX, event.touches[0].clientY, "touch");
+        startX = event.touches[0].clientX;
+        startY = event.touches[0].clientY;
+    } else if (event.touches.length === 2) {
+        const currentTouchDistance = getTouchDistance(event.touches);
+        const zoomFactor = currentTouchDistance / lastTouchDistance;
+
+        scale *= zoomFactor;
+        scale = Math.min(Math.max(scale, minScale), maxScale);
+
+        lastTouchDistance = currentTouchDistance;
 
         pauseSimulationAndRedraw();
     }
+}
+
+function handleTouchEnd(event) {
+    if (event.touches.length === 0) {
+        isPanning = false;
+    } else if (event.touches.length === 1) {
+        startX = event.touches[0].clientX;
+        startY = event.touches[0].clientY;
+    }
+}
+
+function getTouchDistance(touches) {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
 }
 
 function pauseSimulationAndRedraw() {

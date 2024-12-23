@@ -56,7 +56,7 @@ export function animateProjectile(timeOfFlight, maxHeight, range, xAtMaxHeight, 
 
 function drawTrajectory() {
     ctx.beginPath();
-    ctx.strokeStyle = "blue";
+    ctx.strokeStyle = "#2892D7";
     ctx.lineWidth = 2;
 
     let lastX, lastY;
@@ -79,12 +79,12 @@ function drawTrajectory() {
     if (lastX !== undefined && lastY !== undefined && isPointWithinCanvas(lastX, lastY) && currentTime < trajectoryData.length) {
         ctx.beginPath();
         ctx.arc(lastX, lastY, 5, 0, 2 * Math.PI); // Projectile as a small circle
-        ctx.fillStyle = "red";
+        ctx.fillStyle = "#D16666";
         ctx.fill();
 
         // Display the x and y coordinates
         const { x, y } = trajectoryData[Math.floor(currentTime)];
-        ctx.fillStyle = "black";
+        ctx.fillStyle = "#1D2B35";
         ctx.font = "12px Arial";
         ctx.fillText(`x: ${x.toFixed(2)} m`, lastX + 10, lastY - 10);
         ctx.fillText(`y: ${y.toFixed(2)} m`, lastX + 10, lastY + 10);

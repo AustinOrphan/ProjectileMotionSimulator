@@ -74,7 +74,7 @@ function drawGridLines(axis, offset, tickSpacing, visibleRange) {
         if (isGridLineInBounds(canvasCoord, axis)) {
             ctx.beginPath();
             if (coord === 0) {
-                ctx.strokeStyle = "black";
+                ctx.strokeStyle = "#1D2B35";
                 ctx.lineWidth = 2;
             } else {
                 ctx.strokeStyle = "#e0e0e0";
@@ -90,7 +90,7 @@ function drawGridLines(axis, offset, tickSpacing, visibleRange) {
             ctx.stroke();
             ctx.closePath();
             const label = (coord).toFixed(1); // Adjust label for scaling
-            ctx.fillStyle = "black";
+            ctx.fillStyle = "#1D2B35";
             ctx.font = "12px Arial";
             if (coord === 0) {
                 ctx.textAlign = "right";
@@ -108,7 +108,7 @@ function drawGridLines(axis, offset, tickSpacing, visibleRange) {
 }
 
 function drawMainAxes() {
-    ctx.strokeStyle = "black";
+    ctx.strokeStyle = "#1D2B35";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(CANVAS_PADDING, canvas.height - CANVAS_PADDING); // x-axis
@@ -121,7 +121,7 @@ function drawMainAxes() {
 
 function addAxisTitles() {
     ctx.font = "bold 14px Arial";
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "#1D2B35";
     ctx.textAlign = "left";
     ctx.fillText("Range (m)", canvas.width - CANVAS_PADDING - 50, canvas.height - CANVAS_PADDING + 35);
     ctx.fillText("Height (m)", CANVAS_PADDING - 30, CANVAS_PADDING - 10);

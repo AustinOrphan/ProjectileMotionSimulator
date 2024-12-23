@@ -602,28 +602,6 @@ canvas {
   resize: both;
 }
 
-.header {
-  background-color: #1D2B35;
-  /* bg black */
-  color: #D16666;
-  /* text-white */
-  width: 100%;
-  /* Ensure header width is 100% of the viewport */
-  padding: 1.5rem 0;
-  /* py-6 */
-  box-shadow: 0 5px 0 0 #EEE5E9, 0 8px 0 0 #2892D7;
-  /* shadow-sm */
-}
-
-.header-title {
-  text-align: center;
-  /* text-center */
-  font-size: 2rem;
-  /* text-3xl */
-  font-weight: 700;
-  /* font-bold */
-}
-
 body {
   background: #1D2B35;
 }
@@ -757,3 +735,121 @@ body {
   background-color: #EEE5E9;
   /* bg-white */
 }
+
+.header {
+  background-color: #1D2B35;
+  /* bg black */
+  color: #D16666;
+  /* text-white */
+  width: 100%;
+  /* Ensure header width is 100% of the viewport */
+  padding: 1.5rem 0;
+  /* py-6 */
+  box-shadow: 0 5px 0 0 #EEE5E9, 0 8px 0 0 #2892D7;
+  /* shadow-sm */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+  padding: 0 1rem;
+  /* Add padding to align with the rest of the page */
+}
+
+.home-button {
+  background: none;
+  border: none;
+  color: #EEE5E9;
+  font-size: 18px;
+  cursor: pointer;
+  margin-right: auto;
+  /* Align to the left */
+}
+
+.home-icon {
+  width: 32px;
+  /* Adjust size as needed */
+  height: 32px;
+  /* Adjust size as needed */
+  vertical-align: middle;
+}
+
+.grayscale {
+  filter: grayscale(100%);
+  /* Convert icon to grayscale */
+}
+
+.huerotate {
+  filter: hue-rotate(170deg) contrast(5000%);
+}
+
+.contrast {
+  filter: contrast(200%);
+  /* Increase contrast */
+}
+
+.hamburger-menu {
+  background: none;
+  border: none;
+  color: #EEE5E9;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: auto;
+  /* Align to the right */
+}
+
+.page-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  color: #D16666;
+  text-align: center;
+  /* text-center */
+  font-size: 2rem;
+  /* text-3xl */
+  font-weight: 700;
+  /* font-bold */
+}
+
+/* 
+.navbar {
+    display: none;
+    flex-direction: column;
+    background-color: #444;
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    width: 200px;
+    border: 1px solid #555;
+}
+
+.navbar ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.navbar li {
+    padding: 10px;
+    border-bottom: 1px solid #555;
+}
+
+.navbar li a {
+    color: white;
+    text-decoration: none;
+}
+
+.navbar.hidden {
+    display: none;
+}
+
+.navbar:not(.hidden) {
+    display: flex;
+} */

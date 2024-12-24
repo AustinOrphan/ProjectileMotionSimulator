@@ -149,7 +149,7 @@ body {
     background-color: #1D2B35; /* bg black */
     color: #D16666; /* text-white */
     width: 100%; /* Ensure header width is 100% of the viewport */
-    padding: 1.5rem 0; /* py-6 */
+    padding: 1rem 0; /* py-6 */
     box-shadow: 0 5px 0 0 #EEE5E9, 0 8px 0 0 #2892D7; /* shadow-sm */
     display: flex;
     justify-content: space-between;
@@ -175,8 +175,8 @@ body {
 }
 
 .home-icon {
-    width: 75px; /* Adjust size as needed */
-    height: 75px; /* Adjust size as needed */
+    width: 15vw; /* Adjust size as needed */
+    height: 15vw; /* Adjust size as needed */
     vertical-align: middle;
 }
 
@@ -205,11 +205,23 @@ body {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 18px;
+    font-size: 18vw;
     color: #D16666;
     text-align: center; /* text-center */
-    font-size: 2rem; /* text-3xl */
+    font-size: 6vw; /* text-3xl */
     font-weight: 700; /* font-bold */
+}
+
+@media screen and (min-width: 600px) {
+    .page-title {
+        font-size: 3vw; /* text-6xl */
+    }
+    
+.home-icon {
+    width: 75px; /* Adjust size as needed */
+    height: 75px; /* Adjust size as needed */
+    vertical-align: middle;
+}
 }
 /* 
 .navbar {
